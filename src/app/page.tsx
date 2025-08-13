@@ -1,103 +1,345 @@
-import Image from "next/image";
+'use client'
+
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabaseClient'
+import { useRouter } from 'next/navigation'
+import Image from "next/image"
+import Link from "next/link"
+import { useProfileCompletion } from '@/lib/useProfileCompletion'
+import { useVerificationModal } from '@/lib/useVerificationModal'
+import ProfileCompletionModal from '@/components/ProfileCompletionModal'
+import VerificationRequiredModal from '@/components/VerificationRequiredModal'
+import HamburgerMenu from '@/components/HamburgerMenu'
+import LoadingSpinner from '@/components/LoadingSpinner'
+import { goldplayBlack, gothamUltra } from '@/lib/fonts'
 
 export default function Home() {
+  const _router = useRouter()
+  const { profile, completionStatus, loading } = useProfileCompletion()
+  const { isVerificationModalOpen, featureName, hideVerificationModal, showVerificationModal } = useVerificationModal()
+  const [showModal, setShowModal] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [smileKey, setSmileKey] = useState(0)
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    }
+    checkUser()
+  }, [])
+
+  const refreshSmiles = () => {
+    setSmileKey(prev => prev + 1)
+  }
+
+  if (loading) {
+    return <LoadingSpinner />
+  }
+
+  // If user is not logged in, show login/signup options
+  if (!user) {
+    return (
+      <div 
+        className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 relative"
+        style={{
+          backgroundColor: '#0f0f0f'
+        }}
+      >
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2">
+          <Image
+            src="/LogoHalfFix.png"
+            alt="YouthHub Logo"
+            width={340}
+            height={340}
+            priority
+          />
+        </div>
+        <main className="flex flex-col gap-[32px] row-start-2 items-start sm:items-start mt-32 w-full">
+          <div className="mb-8">
+            <h1 className={`${gothamUltra.className} text-6xl sm:text-7xl md:text-8xl text-white leading-tight relative z-20`}>
+              What&apos;s up,<br />
+              {user?.user_metadata?.first_name || user?.user_metadata?.name || "friend"}!
+            </h1>
+          </div>
+          
+          <div className="relative mx-auto w-full flex justify-center">
+            <Link href="/chat" className="block cursor-pointer">
+              <div className="relative">
+                <div 
+                  className="z-0 hover:opacity-90 transition-opacity"
+                  style={{
+                    width: '520px',
+                    height: '281px',
+                    WebkitMask: 'url(/RightBub.svg) no-repeat center',
+                    mask: 'url(/RightBub.svg) no-repeat center',
+                    backgroundColor: '#FEDC01',
+                    WebkitMaskSize: '520px 281px',
+                    maskSize: '520px 281px',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskRepeat: 'no-repeat'
+                  }}
+                />
+                <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-10 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
+                  Join the chat!
+                </h2>
+              </div>
+            </Link>
+          </div>
+        </main>
+        
+        {/* Smile SVG Pile */}
+        <div 
+          className="fixed bottom-0 left-0 w-full h-64 cursor-pointer z-10 select-none" 
+          style={{ marginLeft: '-68px' }}
+          onClick={refreshSmiles}
+          title="Click to refresh smiles!"
+        >
+          {[...Array(100)].map((_, i) => (
+            <img
+              key={`${smileKey}-${i}`}
+              src="/smile.svg"
+              alt="Smile"
+              className="absolute w-40 h-40 pointer-events-none select-none"
+              style={{
+                left: `${(i % 15) * 6.67 + Math.random() * 2}%`,
+                bottom: `${Math.random() * 32}%`,
+                transform: `rotate(${Math.random() * 360}deg)`,
+                zIndex: Math.floor(Math.random() * 10),
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none'
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // If user is logged in but profile is incomplete
+  if (!completionStatus.isComplete) {
+    return (
+      <div 
+        className="min-h-screen p-6 relative"
+        style={{
+          backgroundColor: '#0f0f0f'
+        }}
+      >
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2">
+          <Image
+            src="/LogoHalfFix.png"
+            alt="YouthHub Logo"
+            width={340}
+            height={340}
+            priority
+          />
+        </div>
+        <HamburgerMenu profile={profile} isMod={profile?.role === 'mod' || profile?.role === 'speaker'} />
+        
+                {/* Profile Completion Circle - Added to the right */}
+        <div className="absolute top-6 right-6 z-30">
+          <Link href="/profile" className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer">
+            <span className="text-white text-sm font-semibold">
+              {completionStatus.completionPercentage}%
+            </span>
+            <div className="relative">
+              <svg className="w-8 h-8 transform -rotate-90" viewBox="0 0 100 100">
+                {/* Background circle */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="#374151"
+                  strokeWidth="8"
+                  fill="transparent"
+                />
+                {/* Progress circle */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="#FEDC01"
+                  strokeWidth="8"
+                  fill="transparent"
+                  strokeDasharray={`${2 * Math.PI * 40}`}
+                  strokeDashoffset={`${2 * Math.PI * 40 * (1 - completionStatus.completionPercentage / 100)}`}
+                  strokeLinecap="round"
+                  className="transition-all duration-500 ease-out"
+                />
+              </svg>
+              {/* Profile Icon inside the circle */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          </Link>
+        </div>
+        
+        <div className="max-w-4xl mx-auto mt-32">
+
+          
+          <div className="mb-8">
+            <h1 className={`${gothamUltra.className} text-6xl sm:text-7xl md:text-8xl text-white leading-tight relative z-20`}>
+              What&apos;s up,<br />
+              {profile?.first_name || "friend"}!
+            </h1>
+          </div>
+          
+          <div className="relative mb-8 mx-auto w-full flex justify-center">
+            <Link href="/chat" className="block cursor-pointer">
+              <div className="relative">
+                <div 
+                  className="z-50 hover:opacity-90 transition-opacity"
+                  style={{
+                    width: '520px',
+                    height: '281px',
+                    WebkitMask: 'url(/RightBub.svg) no-repeat center',
+                    mask: 'url(/RightBub.svg) no-repeat center',
+                    backgroundColor: '#FEDC01',
+                    WebkitMaskSize: '520px 281px',
+                    maskSize: '520px 281px',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskRepeat: 'no-repeat'
+                  }}
+                />
+                <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-50 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
+                  Join the chat!
+                </h2>
+              </div>
+            </Link>
+          </div>
+          
+          {/* Demo: Test Verification Modal */}
+          <div className="text-center mt-8">
+            <button
+              onClick={() => showVerificationModal('the demo feature')}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              Test Verification Modal
+            </button>
+          </div>
+        </div>
+
+        <ProfileCompletionModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          onComplete={() => setShowModal(false)}
+        />
+        
+        {/* Verification Required Modal */}
+        <VerificationRequiredModal
+          isOpen={isVerificationModalOpen}
+          onClose={hideVerificationModal}
+          featureName={featureName}
+        />
+        
+        {/* Smile SVG Pile */}
+        <div 
+          className="fixed bottom-0 left-0 w-full h-64 cursor-pointer z-10 select-none" 
+          style={{ marginLeft: '-68px' }}
+          onClick={refreshSmiles}
+          title="Click to refresh smiles!"
+        >
+          {[...Array(100)].map((_, i) => (
+            <img
+              key={`${smileKey}-${i}`}
+              src="/smile.svg"
+              alt="Smile"
+              className="absolute w-40 h-40 pointer-events-none select-none"
+              style={{
+                left: `${(i % 15) * 6.67 + Math.random() * 2}%`,
+                bottom: `${Math.random() * 32}%`,
+                transform: `rotate(${Math.random() * 360}deg)`,
+                zIndex: Math.floor(Math.random() * 10),
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none'
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // If profile is complete, show full dashboard
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
+    <div 
+      className="min-h-screen p-6 relative"
+      style={{
+        backgroundColor: '#0f0f0f'
+      }}
+    >
+      <div className="absolute top-0 left-1/2 transform -translate-x-1/2">
         <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
+          src="/LogoHalfFix.png"
+          alt="YouthHub Logo"
+          width={340}
+          height={340}
           priority
         />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      </div>
+      <HamburgerMenu profile={profile} isMod={profile?.role === 'mod' || profile?.role === 'speaker'} />
+      <div className="max-w-4xl mx-auto mt-32">
+        <div className="mb-8">
+                      <h1 className={`${gothamUltra.className} text-6xl sm:text-7xl md:text-8xl text-white leading-tight relative z-20`}>
+              What&apos;s up,<br />
+              {profile?.first_name || "friend"}!
+            </h1>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        
+        <div className="relative mb-9 mx-auto w-full flex justify-center">
+          <Link href="/chat" className="block cursor-pointer">
+            <div className="relative">
+              <div 
+                className="w-[400px] h-[216px] z-50 hover:opacity-90 transition-opacity"
+                style={{
+                  WebkitMask: 'url(/RightBub.svg) no-repeat center',
+                  mask: 'url(/RightBub.svg) no-repeat center',
+                  backgroundColor: '#FEDC01',
+                  WebkitMaskSize: 'contain',
+                  maskSize: 'contain'
+                }}
+              />
+              <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-50 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
+                Join the chat!
+              </h2>
+            </div>
+          </Link>
+        </div>
+
+        {/* Smile SVG Pile */}
+        <div 
+          className="fixed bottom-0 left-0 w-full h-64 cursor-pointer z-10 select-none" 
+          style={{ marginLeft: '-68px' }}
+          onClick={refreshSmiles}
+          title="Click to refresh smiles!"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {[...Array(100)].map((_, i) => (
+            <img
+              key={`${smileKey}-${i}`}
+              src="/smile.svg"
+              alt="Smile"
+              className="absolute w-40 h-40 pointer-events-none select-none"
+              style={{
+                left: `${(i % 15) * 6.67 + Math.random() * 2}%`,
+                bottom: `${Math.random() * 32}%`,
+                transform: `rotate(${Math.random() * 360}deg)`,
+                zIndex: Math.floor(Math.random() * 10),
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none'
+              }}
+            />
+          ))}
+        </div>
+      </div>
     </div>
-  );
+  )
 }

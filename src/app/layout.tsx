@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { RealtimePollProvider } from "../components/RealtimePollProvider";
+import { gothamMedium, gothamUltra, goldplayBlack } from "../lib/fonts";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,9 +27,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${gothamMedium.variable} ${gothamUltra.variable} ${goldplayBlack.variable} antialiased dark`}
       >
-        {children}
+        <RealtimePollProvider>
+          {children}
+        </RealtimePollProvider>
       </body>
     </html>
   );
