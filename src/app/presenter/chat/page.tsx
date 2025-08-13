@@ -339,7 +339,7 @@ export default function ChatPresenterPage() {
           table: 'message_upvotes'
         },
         (payload) => {
-          const newUpvote = payload.new as any
+          const newUpvote = payload.new as { message_id: string }
           console.log('🎯 New upvote received (presenter):', newUpvote)
           // Only update if the message is in our current messages list
           if (messages.some(m => m.id === newUpvote.message_id)) {
@@ -359,7 +359,7 @@ export default function ChatPresenterPage() {
           table: 'message_upvotes'
         },
         (payload) => {
-          const deletedUpvote = payload.old as any
+          const deletedUpvote = payload.old as { message_id: string }
           console.log('🗑️ Upvote removed (presenter):', deletedUpvote)
           // Only update if the message is in our current messages list
           if (messages.some(m => m.id === deletedUpvote.message_id)) {

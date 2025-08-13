@@ -18,7 +18,7 @@ export default function Home() {
   const { profile, completionStatus, loading } = useProfileCompletion()
   const { isVerificationModalOpen, featureName, hideVerificationModal, showVerificationModal } = useVerificationModal()
   const [showModal, setShowModal] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<unknown>(null)
   const [smileKey, setSmileKey] = useState(0)
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export default function Home() {
           <div className="mb-8">
             <h1 className={`${gothamUltra.className} text-6xl sm:text-7xl md:text-8xl text-white leading-tight relative z-20`}>
               What&apos;s up,<br />
-              {user?.user_metadata?.first_name || user?.user_metadata?.name || "friend"}!
+              {(user as any)?.user_metadata?.first_name || (user as any)?.user_metadata?.name || "friend"}!
             </h1>
           </div>
           
