@@ -13,6 +13,15 @@ import HamburgerMenu from '@/components/HamburgerMenu'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { goldplayBlack, gothamUltra } from '@/lib/fonts'
 
+// Helper function to safely extract user name
+function getUserName(user: unknown): string {
+  if (user && typeof user === 'object' && 'user_metadata' in user) {
+    const metadata = (user as { user_metadata?: { first_name?: string; name?: string } }).user_metadata
+    return metadata?.first_name || metadata?.name || 'friend'
+  }
+  return 'friend'
+}
+
 export default function Home() {
   const _router = useRouter()
   const { profile, completionStatus, loading } = useProfileCompletion()
@@ -59,7 +68,7 @@ export default function Home() {
           <div className="mb-8">
             <h1 className={`${gothamUltra.className} text-6xl sm:text-7xl md:text-8xl text-white leading-tight relative z-20`}>
               What&apos;s up,<br />
-              {(user as any)?.user_metadata?.first_name || (user as any)?.user_metadata?.name || "friend"}!
+              {getUserName(user)}!
             </h1>
           </div>
           
