@@ -53,11 +53,11 @@ export default function ChatInput({
     }
   }
 
-  const getCharacterCountColor = () => {
+  const getCharacterCountColor = (): string => {
     const percentage = (characterCount / maxLength) * 100
-    if (percentage >= 90) return getColor('error.500')
-    if (percentage >= 75) return getColor('warning.500')
-    return getColor('neutral.500')
+    if (percentage >= 90) return getColor('error.500') as string
+    if (percentage >= 75) return getColor('warning.500') as string
+    return getColor('neutral.500') as string
   }
 
   const isSendDisabled = disabled || !value.trim() || isFrozen || characterCount > maxLength
