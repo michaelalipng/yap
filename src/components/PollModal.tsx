@@ -8,6 +8,7 @@ import LoadingSpinner from '@/components/LoadingSpinner'
 import ErrorModal from '@/components/ErrorModal'
 import { useErrorModal } from '@/lib/useErrorModal'
 import { Poll, PollOption, PollResult, PollVote, getPollOptions, getMyVote, castVote, getPollResults, getPollResultsWithOptions, subscribePollVotes } from '@/lib/polls/api'
+import { supabase } from '@/lib/supabaseClient'
 
 interface PollModalProps {
   poll: Poll
@@ -71,6 +72,7 @@ export default function PollModal({ poll, userId, onClose }: PollModalProps) {
     const loadPollData = async () => {
       try {
         setOptionsLoading(true)
+        console.log('PollModal: Loading poll data for poll:', poll.id)
         
         // Load options and user's vote in parallel
         const [pollOptions, myVote] = await Promise.all([
@@ -80,6 +82,36 @@ export default function PollModal({ poll, userId, onClose }: PollModalProps) {
         
         console.log('PollModal: Loaded options:', pollOptions)
         console.log('PollModal: Loaded user vote:', myVote)
+        console.log('PollModal: Options count:', pollOptions?.length || 0)
+        
+        // Ensure we have options before proceeding
+        if (!pollOptions || pollOptions.length === 0) {
+          console.warn('PollModal: No poll options found, retrying in 500ms...')
+          // Retry after a short delay in case options are still being created
+          setTimeout(async () => {
+            try {
+              const retryOptions = await getPollOptions(poll.id)
+              console.log('PollModal: Retry loaded options:', retryOptions)
+              if (retryOptions && retryOptions.length > 0) {
+                setOptions(retryOptions)
+                setOptionsLoading(false)
+                
+                // If user has already voted, show results immediately
+                if (myVote) {
+                  setShowResults(true)
+                  await loadResultsWithOptions(retryOptions)
+                }
+              } else {
+                console.error('PollModal: Still no options after retry')
+                setOptionsLoading(false)
+              }
+            } catch (retryError) {
+              console.error('PollModal: Error in retry:', retryError)
+              setOptionsLoading(false)
+            }
+          }, 500)
+          return
+        }
         
         setOptions(pollOptions)
         setUserVote(myVote)
@@ -112,22 +144,118 @@ export default function PollModal({ poll, userId, onClose }: PollModalProps) {
     }
   }, [poll.id, loadResultsSafely])
 
+  // Subscribe to poll options changes for real-time updates
+  useEffect(() => {
+    if (!poll.id) return
+
+    console.log('PollModal: Setting up poll options subscription for poll:', poll.id)
+    
+    const optionsChannel = supabase
+      .channel(`poll_options:${poll.id}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'poll_options',
+          filter: `poll_id=eq.${poll.id}`
+        },
+        async (payload) => {
+          console.log('PollModal: Poll options change detected:', payload)
+          
+          if (payload.eventType === 'INSERT') {
+            console.log('PollModal: New option added:', payload.new)
+            // Refresh options when new ones are added
+            try {
+              const newOptions = await getPollOptions(poll.id)
+              console.log('PollModal: Updated options after change:', newOptions)
+              setOptions(newOptions)
+              
+              // If we were waiting for options and now have them, stop loading
+              if (optionsLoading && newOptions.length > 0) {
+                setOptionsLoading(false)
+              }
+            } catch (error) {
+              console.error('PollModal: Error refreshing options:', error)
+            }
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('PollModal: Options subscription status:', status)
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ PollModal: Options real-time subscription active')
+        } else {
+          console.log('❌ PollModal: Options subscription failed:', status)
+        }
+      })
+
+    return () => {
+      console.log('PollModal: Cleaning up options subscription')
+      supabase.removeChannel(optionsChannel)
+    }
+  }, [poll.id, optionsLoading])
+
+  // Subscribe to poll votes for real-time results updates
+  useEffect(() => {
+    if (!poll.id) return
+
+    console.log('PollModal: Setting up poll votes subscription for poll:', poll.id)
+    
+    const votesChannel = supabase
+      .channel(`poll_votes:${poll.id}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'poll_votes',
+          filter: `poll_id=eq.${poll.id}`
+        },
+        async (payload) => {
+          console.log('PollModal: Poll vote change detected:', payload)
+          
+          // Refresh results when any vote change occurs
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
+            console.log('PollModal: Vote change detected, refreshing results...')
+            try {
+              await loadResultsWithOptions(options)
+            } catch (error) {
+              console.error('PollModal: Error refreshing results after vote change:', error)
+            }
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('PollModal: Votes subscription status:', status)
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ PollModal: Votes real-time subscription active')
+        } else {
+          console.log('❌ PollModal: Votes subscription failed:', status)
+        }
+      })
+
+    return () => {
+      console.log('PollModal: Cleaning up votes subscription')
+      supabase.removeChannel(votesChannel)
+    }
+  }, [poll.id, options])
+
   // Handle voting
   const handleVote = async (optionId: string) => {
     if (isVoting || userVote) return
     
     setIsVoting(true)
     try {
+      console.log('PollModal: Casting vote for option:', optionId)
       const success = await castVote(poll.id, optionId)
       if (success) {
-        // Refresh results and show them
-        await loadResultsWithOptions(options)
-        setShowResults(true)
+        console.log('PollModal: Vote cast successfully')
         
-        // Update local state to show user has voted
+        // Update local state immediately for better UX
         const votedOption = options.find(opt => opt.id === optionId)
         if (votedOption) {
-          setUserVote({
+          const newUserVote: PollVote = {
             id: 'temp',
             poll_id: poll.id,
             option_id: optionId,
@@ -135,8 +263,17 @@ export default function PollModal({ poll, userId, onClose }: PollModalProps) {
             event_id: poll.event_id,
             unique: `${poll.id}-${optionId}-${userId}`,
             created_at: new Date().toISOString()
-          })
+          }
+          setUserVote(newUserVote)
+          console.log('PollModal: Local user vote updated:', newUserVote)
         }
+        
+        // Refresh results and show them
+        await loadResultsWithOptions(options)
+        setShowResults(true)
+      } else {
+        console.error('PollModal: Vote casting failed')
+        throw new Error('Failed to cast vote')
       }
     } catch (error) {
       console.error('Error casting vote:', error)
@@ -164,7 +301,63 @@ export default function PollModal({ poll, userId, onClose }: PollModalProps) {
   const winningOptions = getWinningOptions()
 
   if (optionsLoading) {
-    return <LoadingSpinner />
+    return (
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        onClick={onClose}
+      >
+        <Card 
+          className="max-w-md mx-4 w-full"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <CardContent className="p-6 text-center">
+            <LoadingSpinner />
+            <p className="mt-4 text-muted-foreground">Loading poll options...</p>
+            <p className="text-sm text-muted-foreground mt-2">This may take a moment for new polls</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Show error state if no options are available
+  if (!options || options.length === 0) {
+    return (
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        onClick={onClose}
+      >
+        <Card 
+          className="max-w-md mx-4 w-full"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <CardContent className="p-6 text-center">
+            <div className="text-red-500 mb-4">
+              <X className="h-12 w-12 mx-auto" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Poll Options Not Available</h3>
+            <p className="text-muted-foreground mb-4">
+              The poll options are still being loaded. This usually happens with newly created polls.
+            </p>
+            <div className="space-y-2">
+              <Button
+                onClick={() => window.location.reload()}
+                className="w-full"
+              >
+                Refresh Page
+              </Button>
+              <Button
+                variant="outline"
+                onClick={onClose}
+                className="w-full"
+              >
+                Close
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (

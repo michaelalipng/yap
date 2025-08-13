@@ -14,6 +14,45 @@
   --font-goldplay-black: 'Goldplay-Black', sans-serif;
 }
 
+/* Mobile Safe Area Support */
+@supports (padding: max(0px)) {
+  .pb-safe {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+  
+  .pt-safe {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+  
+  .px-safe {
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+  }
+}
+
+/* Responsive improvements for mobile devices */
+@media (max-width: 640px) {
+  .mobile-pb-safe {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+  
+  .mobile-pt-safe {
+    padding-top: calc(0.75rem + env(safe-area-inset-top));
+  }
+}
+
+/* Ensure proper touch targets on mobile */
+@media (max-width: 640px) {
+  button, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  input, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
 @keyframes float {
   0% {
     transform: translateY(0) scale(1);

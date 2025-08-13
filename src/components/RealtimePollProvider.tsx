@@ -111,6 +111,29 @@ export function RealtimePollProvider({ children }: RealtimePollProviderProps) {
         { 
           event: '*', 
           schema: 'public', 
+          table: 'poll_options',
+          filter: `poll_id=in.(select id from polls where event_id=eq.${eventId} and active=eq.true)`
+        },
+        (payload) => {
+          console.log('Real-time poll options change detected:', payload)
+          
+          // When poll options change, refresh the poll to ensure we have the latest data
+          // This handles cases where options are added after the poll is created
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            console.log('Poll options changed, refreshing poll data...')
+            // Use a longer delay to ensure the database transaction is complete
+            // and all related data is properly saved
+            setTimeout(() => {
+              refreshPoll(eventId)
+            }, 300)
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
           table: 'poll_votes',
           filter: `event_id=eq.${eventId}`
         },

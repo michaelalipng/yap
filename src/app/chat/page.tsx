@@ -1107,30 +1107,31 @@ export default function ChatPage() {
 
   return (
     <div 
-      className="h-screen flex flex-col fixed inset-0"
+      className="h-screen flex flex-col fixed inset-0 overflow-hidden"
       style={{
         backgroundColor: '#0f0f0f'
       }}
     >
       {/* Logo at top right */}
-      <div className="absolute top-0 right-4 z-30">
+      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-30">
         <Image
           src="/LogoHalfFix.png"
           alt="YAP Logo"
-          width={80}
-          height={80}
+          width={60}
+          height={60}
+          className="sm:w-20 sm:h-20"
           priority
         />
       </div>
 
       {/* Fixed Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-800 bg-black/20 backdrop-blur-sm z-10 flex-shrink-0 fixed top-0 left-0 right-0">
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-800 bg-black/20 backdrop-blur-sm z-10 flex-shrink-0 fixed top-0 left-0 right-0">
         <div className="flex items-center space-x-2">
           <HamburgerMenu profile={profile} isMod={isMod} />
 
         </div>
         {isMod && (
-          <div className="flex items-center space-x-2 mr-20">
+          <div className="flex items-center space-x-1 sm:space-x-2 mr-16 sm:mr-20">
             <Button
               variant="ghost"
               size="sm"
@@ -1158,7 +1159,7 @@ export default function ChatPage() {
                 await supabase
                   .from('flags')
                   .update({ value: newValue })
-                  .eq('key', 'chat_frozen')
+                  .eq('key', 'reactions_enabled')
                 setChatFrozen(newValue)
                 
                 // Note: Chat freeze broadcasts removed as we're using event-specific channels
@@ -1211,93 +1212,92 @@ export default function ChatPage() {
         ))}
       </div>
 
+      {/* Main Content Area - Flexbox layout for responsive design */}
+      <div className="flex-1 flex flex-col min-h-0 mt-16 sm:mt-20">
+        {/* Scrollable Messages Area - Takes remaining space with safe bottom margin */}
+        <div className="flex-1 overflow-hidden pb-36 sm:pb-32">
+          <ScrollArea className="h-full px-3 sm:px-4 md:px-6 py-4" ref={scrollAreaRef}>
+            <div className="space-y-3 sm:space-y-4">
+              {/* No Active Event Message */}
+              {!activeEvent && (
+                <Card className="bg-yellow-50 border-yellow-200">
+                  <CardContent className="p-3 sm:p-4 text-center">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <span className="text-xl sm:text-2xl">⛔</span>
+                      <span className="font-semibold text-yellow-800 text-sm sm:text-base">No Active Event</span>
+                    </div>
+                    <p className="text-yellow-700 text-xs sm:text-sm">
+                      There is no active event right now. Come back during the next service.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
-
-      {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-hidden mt-16 mb-14">
-        <ScrollArea className="h-full px-6 py-4" ref={scrollAreaRef}>
-          <div className="space-y-4">
-            {/* No Active Event Message */}
-            {!activeEvent && (
-              <Card className="bg-yellow-50 border-yellow-200">
-                <CardContent className="p-4 text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <span className="text-2xl">⛔</span>
-                    <span className="font-semibold text-yellow-800">No Active Event</span>
-                  </div>
-                  <p className="text-yellow-700 text-sm">
-                    There is no active event right now. Come back during the next service.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {messages
-              .filter((msg) => {
-                // Moderators see all non-denied messages (including pending ones)
-                if (isMod) {
-                  return !msg.denied
-                }
-                // Regular users see only approved messages or their own messages
-                return msg.denied ? false : (msg.approved || msg.user_id === profile?.id)
-              })
-              .sort((a, b) => {
-                if (a.pinned && !b.pinned) return 1
-                if (!a.pinned && b.pinned) return -1
-                return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-              })
-              .map((msg) => {
-                // Fallback: load profiles if they're missing
-                if (Object.keys(profileMap).length === 0) {
-                  refreshProfiles()
-                }
-                
-                const user = profileMap[msg.user_id] || {}
-                const userDisplayInfo = getUserDisplayInfo(msg.user_id, msg)
-                
-                return (
-                  <Message
-                    key={msg.id}
-                    id={msg.id}
-                    content={msg.content}
-                    userId={msg.user_id}
-                    userName={userDisplayInfo.name}
-                    userRole={user.role || 'user'}
-                    userScore={userDisplayInfo.score}
-                    profileIcon={(() => {
-                      const finalIcon = user.profile_icon || 'Dog'
-                      if (process.env.NODE_ENV === 'development') {
-                        console.log('Message profileIcon:', { 
-                          userId: user.id, 
-                          username: user.username,
-                          profileIcon: user.profile_icon, 
-                          finalIcon: finalIcon,
-                          userObject: user
-                        })
-                      }
-                      return finalIcon
-                    })()}
-                    createdAt={msg.created_at}
-                    approved={msg.approved}
-                    denied={msg.denied}
-                    starred={msg.starred}
-                    pinned={msg.pinned}
-                    isMod={isMod}
-                    upvoteCount={messageUpvotes[msg.id] || 0}
-                    userHasUpvoted={userUpvotes[msg.id] || false}
-                    hasActiveEvent={!!activeEvent}
-                    isOwnMessage={msg.user_id === profile?.id}
-                    onModeration={handleModeration}
-                    onUpvote={handleUpvote}
-                  />
-                )
-              })}
-            
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
-        
-
+              {messages
+                .filter((msg) => {
+                  // Moderators see all non-denied messages (including pending ones)
+                  if (isMod) {
+                    return !msg.denied
+                  }
+                  // Regular users see only approved messages or their own messages
+                  return msg.denied ? false : (msg.approved || msg.user_id === profile?.id)
+                })
+                .sort((a, b) => {
+                  if (a.pinned && !b.pinned) return 1
+                  if (!a.pinned && b.pinned) return -1
+                  return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                })
+                .map((msg) => {
+                  // Fallback: load profiles if they're missing
+                  if (Object.keys(profileMap).length === 0) {
+                    refreshProfiles()
+                  }
+                  
+                  const user = profileMap[msg.user_id] || {}
+                  const userDisplayInfo = getUserDisplayInfo(msg.user_id, msg)
+                  
+                  return (
+                    <Message
+                      key={msg.id}
+                      id={msg.id}
+                      content={msg.content}
+                      userId={msg.user_id}
+                      userName={userDisplayInfo.name}
+                      userRole={user.role || 'user'}
+                      userScore={userDisplayInfo.score}
+                      profileIcon={(() => {
+                        const finalIcon = user.profile_icon || 'Dog'
+                        if (process.env.NODE_ENV === 'development') {
+                          console.log('Message profileIcon:', { 
+                            userId: user.id, 
+                            username: user.username,
+                            profileIcon: user.profile_icon, 
+                            finalIcon: finalIcon,
+                            userObject: user
+                          })
+                        }
+                        return finalIcon
+                      })()}
+                      createdAt={msg.created_at}
+                      approved={msg.approved}
+                      denied={msg.denied}
+                      starred={msg.starred}
+                      pinned={msg.pinned}
+                      isMod={isMod}
+                      upvoteCount={messageUpvotes[msg.id] || 0}
+                      userHasUpvoted={userUpvotes[msg.id] || false}
+                      hasActiveEvent={!!activeEvent}
+                      isOwnMessage={msg.user_id === profile?.id}
+                      onModeration={handleModeration}
+                      onUpvote={handleUpvote}
+                    />
+                  )
+                })}
+              
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+        </div>
       </div>
 
       {/* Reactions Enabled Notification */}
@@ -1346,7 +1346,7 @@ export default function ChatPage() {
           className={`fixed right-4 z-20 ${
             buttonBurstingAway ? 'animate-burstAway' : 'animate-fadeIn'
           }`} 
-          style={{ bottom: '108px' }}
+          style={{ bottom: '120px' }}
         >
           <button
             ref={emojiToggleRef}
@@ -1368,8 +1368,8 @@ export default function ChatPage() {
           ref={emojiBarRef}
           className={`fixed right-4 z-20 transition-all duration-300 ease-out origin-bottom-right ${
             showEmojiBar 
-              ? 'bottom-24 opacity-100 scale-100 translate-y-0' 
-              : 'bottom-16 opacity-0 scale-75 translate-y-4 pointer-events-none'
+              ? 'bottom-36 opacity-100 scale-100 translate-y-0' 
+              : 'bottom-28 opacity-0 scale-75 translate-y-4 pointer-events-none'
           }`}
           style={{ 
             transform: showEmojiBar 
@@ -1405,21 +1405,21 @@ export default function ChatPage() {
       )}
 
       {/* Floating Banner above message input */}
-      <div className="fixed bottom-28 left-1/2 transform -translate-x-1/2 w-1/2 max-w-md z-20">
+      <div className="fixed bottom-32 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md z-20">
         <ChatBanner />
       </div>
 
-
-
-      {/* Fixed Message Input */}
-      <div className="flex-shrink-0 bg-background border-t border-border p-2 pb-8 fixed bottom-0 left-0 right-0 z-10">
-
-        
-        <div className="flex gap-2">
+      {/* Fixed Message Input - Responsive positioning */}
+      <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-t border-border p-3 pb-safe fixed bottom-0 left-0 right-0 z-10">
+        <div className="flex gap-2 max-w-4xl mx-auto px-2">
           <div className="flex-1 relative">
             <Textarea
-              className="flex-1 resize-none rounded-full border-0 bg-muted/30 py-2 pr-4"
-              style={{ minHeight: '40px', maxHeight: '40px' }}
+              className="flex-1 resize-none rounded-full border-0 bg-muted/30 py-3 px-4 text-sm sm:text-base"
+              style={{ 
+                minHeight: '44px', 
+                maxHeight: '44px',
+                lineHeight: '1.2'
+              }}
               placeholder=""
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
@@ -1433,24 +1433,24 @@ export default function ChatPage() {
             />
             {/* Custom placeholder with Gotham Ultra font */}
             {!newMessage && (
-              <div className={`${gothamUltra.className} absolute inset-0 flex items-center px-3 pointer-events-none text-muted-foreground/60`}>
+              <div className={`${gothamUltra.className} absolute inset-0 flex items-center px-4 pointer-events-none text-muted-foreground/60 text-sm sm:text-base`}>
                 {activeEvent ? "Type a message..." : "No active event - messaging disabled"}
               </div>
             )}
           </div>
           <button
             onClick={handleSend}
-            className={`p-2 transition-all duration-500 ${
+            className={`p-3 transition-all duration-500 rounded-full ${
               chatFrozen 
-                ? 'text-red-500 cursor-not-allowed' 
-                : 'text-foreground hover:text-blue-500 hover:scale-110'
+                ? 'text-red-500 cursor-not-allowed bg-red-50' 
+                : 'text-foreground hover:text-blue-500 hover:bg-blue-50 hover:scale-105'
             }`}
             disabled={!activeEvent || chatFrozen}
           >
             {chatFrozen ? (
-              <OctagonX className="h-6 w-6" />
+              <OctagonX className="h-5 w-5" />
             ) : (
-              <Send className="h-6 w-6" />
+              <Send className="h-5 w-5" />
             )}
           </button>
         </div>

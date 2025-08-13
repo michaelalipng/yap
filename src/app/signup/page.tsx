@@ -192,8 +192,8 @@ export default function SignupPage() {
             >
               {loading ? (
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
-                  Creating Account...
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-3"></div>
+                  <span>Creating Account...</span>
                 </div>
               ) : (
                 'Start Yapping'
@@ -221,45 +221,63 @@ export default function SignupPage() {
         {/* Row 1 - Top */}
         <div className="flex justify-center space-x-2">
           {[...Array(15)].map((_, i) => (
-            <img
-              key={`row1-${i}`}
-              src="/smile.png"
-              alt="Smile"
-              className="w-12 h-12"
-              style={{
-                transform: `rotate(${((i * 7) % 12) * 30}deg)`,
-              }}
-            />
+            <div key={`row1-${i}`} className="w-12 h-12">
+              <Image
+                src="/Smile.png"
+                alt="Smile"
+                width={48}
+                height={48}
+                className="w-full h-full"
+                style={{
+                  transform: `rotate(${((i * 7) % 12) * 30}deg)`,
+                }}
+                onError={(e) => {
+                  console.error(`Failed to load smile image row1-${i}:`, e)
+                }}
+              />
+            </div>
           ))}
         </div>
         
         {/* Row 2 - Middle */}
         <div className="flex justify-center space-x-2 mt-1">
           {[...Array(15)].map((_, i) => (
-            <img
-              key={`row2-${i}`}
-              src="/smile.png"
-              alt="Smile"
-              className="w-12 h-12"
-              style={{
-                transform: `rotate(${((i * 11) % 12) * 30}deg)`,
-              }}
-            />
+            <div key={`row2-${i}`} className="w-12 h-12">
+              <Image
+                src="/Smile.png"
+                alt="Smile"
+                width={48}
+                height={48}
+                className="w-full h-full"
+                style={{
+                  transform: `rotate(${((i * 11) % 12) * 30}deg)`,
+                }}
+                onError={(e) => {
+                  console.error(`Failed to load smile image row2-${i}:`, e)
+                }}
+              />
+            </div>
           ))}
         </div>
         
         {/* Row 3 - Bottom */}
         <div className="flex justify-center space-x-2 mt-1">
           {[...Array(15)].map((_, i) => (
-            <img
-              key={`row3-${i}`}
-              src="/smile.png"
-              alt="Smile"
-              className="w-12 h-12"
-              style={{
-                transform: `rotate(${((i * 13) % 12) * 30}deg)`,
-              }}
-            />
+            <div key={`row3-${i}`} className="w-12 h-12">
+              <Image
+                src="/Smile.png"
+                alt="Smile"
+                width={48}
+                height={48}
+                className="w-full h-full"
+                style={{
+                  transform: `rotate(${((i * 13) % 12) * 30}deg)`,
+                }}
+                onError={(e) => {
+                  console.error(`Failed to load smile image row3-${i}:`, e)
+                }}
+              />
+            </div>
           ))}
         </div>
       </div>

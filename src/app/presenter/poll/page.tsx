@@ -147,12 +147,41 @@ export default function PollPresenterPage() {
     const subscribeToVoteChanges = async () => {
       try {
         console.log('Subscribing to vote changes for poll:', activePoll.id)
-        const voteCleanup = await subscribePollVotes(activePoll.id, async () => {
-          console.log('Vote change detected, refreshing results...')
-          await refreshResults(activePoll.id)
-        })
         
-        voteSubscriptionRef.current = voteCleanup
+        // Create a more robust vote subscription
+        const voteChannel = supabase
+          .channel(`poll_votes:${activePoll.id}`)
+          .on(
+            'postgres_changes',
+            { 
+              event: '*', 
+              schema: 'public', 
+              table: 'poll_votes',
+              filter: `poll_id=eq.${activePoll.id}`
+            },
+            (payload) => {
+              console.log('Vote change detected:', payload)
+              console.log('Event type:', payload.eventType)
+              console.log('New vote data:', payload.new)
+              console.log('Old vote data:', payload.old)
+              
+              // Immediately refresh results when any vote change occurs
+              refreshResults(activePoll.id)
+            }
+          )
+          .subscribe((status) => {
+            console.log('Vote subscription status:', status)
+            if (status === 'SUBSCRIBED') {
+              console.log('✅ Vote real-time subscription active')
+            } else {
+              console.log('❌ Vote subscription failed:', status)
+            }
+          })
+        
+        voteSubscriptionRef.current = () => {
+          console.log('Cleaning up vote subscription')
+          supabase.removeChannel(voteChannel)
+        }
       } catch (error) {
         console.error('Error subscribing to vote changes:', error)
       }

@@ -420,20 +420,28 @@ export const createPoll = async (
   userId?: string
 ): Promise<string | null> => {
   try {
+    console.log('Creating poll with:', { question, type, options, eventId, userId })
+    
     // First, deactivate any existing active polls for this event
     try {
-      await supabase
+      const { error: deactivateError } = await supabase
         .from('polls')
         .update({ active: false })
         .eq('event_id', eventId)
         .eq('active', true)
-        .throwOnError()
+
+      if (deactivateError) {
+        console.error('Error deactivating existing polls:', deactivateError)
+      } else {
+        console.log('Successfully deactivated existing polls for event:', eventId)
+      }
     } catch (error) {
       console.error('Error deactivating existing polls:', error)
       // Continue anyway, don't fail the whole operation
     }
 
     // Create the poll first
+    console.log('Creating poll record...')
     const { data: poll, error: pollError } = await supabase
       .from('polls')
       .insert({
@@ -455,6 +463,9 @@ export const createPoll = async (
 
     // Create poll options using the actual database schema
     try {
+      console.log('Creating poll options...')
+      console.log('Options to insert:', options)
+      
       // First, let's test if we can even access the table
       console.log('Testing table access...')
       const { data: testData, error: testError } = await supabase
@@ -474,23 +485,29 @@ export const createPoll = async (
         return null
       }
       
-      console.log('About to insert poll options:', options.map((text, i) => ({
+      // Prepare options data with proper structure
+      const optionsData = options.map((text, i) => ({
         poll_id: poll.id,
         label: text.trim(),
-        position: i
-      })))
+        position: i,
+        unique: `${poll.id}_${i}_${text.trim().toLowerCase().replace(/\s+/g, '_')}`
+      }))
       
-      const { error: optionsError } = await supabase
+      console.log('About to insert poll options:', optionsData)
+      
+      const { data: insertedOptions, error: optionsError } = await supabase
         .from('poll_options')
-        .insert(options.map((text, i) => ({
-          poll_id: poll.id,
-          label: text.trim(),
-          position: i,
-          unique: `${poll.id}_${i}_${text.trim().toLowerCase().replace(/\s+/g, '_')}`
-        })))
+        .insert(optionsData)
+        .select()
 
       if (optionsError) {
         console.error('Error creating poll options:', optionsError)
+        console.error('Error details:', {
+          message: optionsError.message,
+          details: optionsError.details,
+          hint: optionsError.hint,
+          code: optionsError.code
+        })
         // Delete the poll if options creation failed
         await supabase
           .from('polls')
@@ -499,7 +516,23 @@ export const createPoll = async (
         return null
       }
 
-      console.log('Poll options created successfully')
+      console.log('Poll options created successfully:', insertedOptions)
+      console.log('Total options created:', insertedOptions?.length || 0)
+      
+      // Verify the options were created by fetching them back
+      const { data: verifyOptions, error: verifyError } = await supabase
+        .from('poll_options')
+        .select('*')
+        .eq('poll_id', poll.id)
+        .order('position', { ascending: true })
+      
+      if (verifyError) {
+        console.error('Error verifying poll options:', verifyError)
+      } else {
+        console.log('Verified poll options:', verifyOptions)
+        console.log('Verified options count:', verifyOptions?.length || 0)
+      }
+      
       return poll.id
     } catch (optionsError) {
       console.error('Error creating poll options:', optionsError)
