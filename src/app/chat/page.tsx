@@ -421,14 +421,12 @@ export default function ChatPage() {
         (payload) => {
           const newUpvote = payload.new as { message_id: string }
           console.log('🎯 New upvote received:', newUpvote)
-          // Only update if the message is in our current messages list
-          if (messages.some(m => m.id === newUpvote.message_id)) {
-            setMessageUpvotes(prev => ({
-              ...prev,
-              [newUpvote.message_id]: (prev[newUpvote.message_id] || 0) + 1
-            }))
-            console.log('✅ Upvote count updated for message:', newUpvote.message_id)
-          }
+          // Update upvote count for any message (we'll filter in the UI if needed)
+          setMessageUpvotes(prev => ({
+            ...prev,
+            [newUpvote.message_id]: (prev[newUpvote.message_id] || 0) + 1
+          }))
+          console.log('✅ Upvote count updated for message:', newUpvote.message_id)
         }
       )
       .on(
@@ -441,14 +439,12 @@ export default function ChatPage() {
         (payload) => {
           const deletedUpvote = payload.old as { message_id: string }
           console.log('🗑️ Upvote removed:', deletedUpvote)
-          // Only update if the message is in our current messages list
-          if (messages.some(m => m.id === deletedUpvote.message_id)) {
-            setMessageUpvotes(prev => ({
-              ...prev,
-              [deletedUpvote.message_id]: Math.max(0, (prev[deletedUpvote.message_id] || 0) - 1)
-            }))
-            console.log('✅ Upvote count updated for message:', deletedUpvote.message_id)
-          }
+          // Update upvote count for any message (we'll filter in the UI if needed)
+          setMessageUpvotes(prev => ({
+            ...prev,
+            [deletedUpvote.message_id]: Math.max(0, (prev[deletedUpvote.message_id] || 0) - 1)
+          }))
+          console.log('✅ Upvote count updated for message:', deletedUpvote.message_id)
         }
       )
       .subscribe((status) => {
@@ -464,14 +460,14 @@ export default function ChatPage() {
       console.log('Cleaning up upvote real-time subscription')
       supabase.removeChannel(upvoteChannel)
     }
-  }, [activeEvent?.id, messages])
+  }, [activeEvent?.id])
 
   // Ensure profiles are loaded when component mounts
   useEffect(() => {
     if (profile && Object.keys(profileMap).length === 0) {
       refreshProfiles()
     }
-  }, [profile, profileMap])
+  }, [profile])
 
   // Auto-scroll to bottom when messages are loaded or new messages arrive
   useEffect(() => {
@@ -626,7 +622,7 @@ export default function ChatPage() {
       setButtonBurstingAway(false)
       setShowEmojiBar(false) // Close emoji bar if open
     }
-  }, [reactionsEnabled, activeEvent, profile?.verified, showEmojiButton])
+  }, [reactionsEnabled, activeEvent, profile?.verified])
 
 
 
