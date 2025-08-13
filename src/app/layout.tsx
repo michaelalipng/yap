@@ -24,6 +24,15 @@ export const metadata: Metadata = {
     userScalable: false,
     viewportFit: 'cover',
     interactiveWidget: 'resizes-content'
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'black-translucent',
+    'apple-mobile-web-app-title': 'YouthHub',
+    'application-name': 'YouthHub',
+    'msapplication-TileColor': '#000000',
+    'theme-color': '#000000'
   }
 };
 
@@ -64,6 +73,58 @@ export default function RootLayout({
                 // Prevent overscroll behavior
                 document.body.style.overscrollBehavior = 'none';
                 document.documentElement.style.overscrollBehavior = 'none';
+                
+                // Mobile browser UI hiding
+                function hideMobileBrowserUI() {
+                  // Set viewport height to prevent address bar from showing
+                  const vh = window.innerHeight * 0.01;
+                  document.documentElement.style.setProperty('--vh', \`\${vh}px\`);
+                  
+                  // Add mobile app classes
+                  document.body.classList.add('mobile-full-height');
+                  
+                  // Prevent address bar from showing on scroll
+                  let lastScrollTop = 0;
+                  window.addEventListener('scroll', function() {
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    if (scrollTop > lastScrollTop) {
+                      // Scrolling down - try to hide address bar
+                      if (window.innerHeight < window.outerHeight) {
+                        window.scrollTo(0, 1);
+                      }
+                    }
+                    lastScrollTop = scrollTop;
+                  });
+                }
+                
+                // Hide mobile browser UI on load and resize
+                if (window.innerWidth <= 768) {
+                  hideMobileBrowserUI();
+                  window.addEventListener('resize', hideMobileBrowserUI);
+                  window.addEventListener('orientationchange', function() {
+                    setTimeout(hideMobileBrowserUI, 100);
+                  });
+                }
+                
+                // iOS specific: prevent address bar from showing
+                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                  // Prevent zoom on double tap
+                  let lastTouchEnd = 0;
+                  document.addEventListener('touchend', function(event) {
+                    const now = (new Date()).getTime();
+                    if (now - lastTouchEnd <= 300) {
+                      event.preventDefault();
+                    }
+                    lastTouchEnd = now;
+                  }, false);
+                  
+                  // Prevent address bar from showing
+                  window.addEventListener('load', function() {
+                    setTimeout(function() {
+                      window.scrollTo(0, 1);
+                    }, 0);
+                  });
+                }
               });
             `,
           }}

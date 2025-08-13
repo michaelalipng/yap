@@ -29,6 +29,93 @@ html, body {
   user-select: none;
 }
 
+/* Mobile browser UI hiding and app-like experience */
+@media (max-width: 768px) {
+  html, body {
+    /* Prevent address bar from showing */
+    height: 100vh;
+    height: -webkit-fill-available;
+    height: fill-available;
+    
+    /* Hide mobile browser UI elements */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    
+    /* Prevent zoom and scaling */
+    touch-action: manipulation;
+    
+    /* Hide scrollbars */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    
+    /* Prevent address bar from showing */
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+  
+  /* Hide scrollbars on webkit browsers */
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Full viewport height for mobile */
+  .mobile-full-height {
+    height: 100vh;
+    height: -webkit-fill-available;
+    height: fill-available;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    min-height: fill-available;
+  }
+  
+  /* Prevent mobile browser chrome from interfering */
+  .mobile-app-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    -webkit-overflow-scrolling: touch;
+    
+    /* Use CSS custom property for viewport height */
+    height: calc(var(--vh, 1vh) * 100);
+    min-height: calc(var(--vh, 1vh) * 100);
+    
+    /* Prevent address bar from showing */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  /* Hide mobile browser UI elements */
+  .mobile-app-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    z-index: -1;
+    pointer-events: none;
+  }
+}
+
+/* Prevent pull-to-refresh on specific containers */
+.no-pull-refresh {
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: auto;
+}
+
 /* iOS-specific pull-to-refresh prevention */
 @supports (-webkit-touch-callout: none) {
   html, body {
@@ -50,15 +137,6 @@ html, body {
     -webkit-overflow-scrolling: touch;
     height: 100%;
   }
-}
-
-/* Prevent pull-to-refresh on specific containers */
-.no-pull-refresh {
-  overscroll-behavior: none;
-  overscroll-behavior-x: none;
-  overscroll-behavior-y: none;
-  touch-action: pan-x pan-y;
-  -webkit-overflow-scrolling: auto;
 }
 
 /* Mobile Safe Area Support */

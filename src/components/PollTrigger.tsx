@@ -11,7 +11,7 @@ interface PollTriggerProps {
 }
 
 export default function PollTrigger({ eventId, onPollClick }: PollTriggerProps) {
-  const { activePolls, subscribeToPoll } = useRealtimePolls()
+  const { activePolls, subscribeToPoll, refreshPoll } = useRealtimePolls()
   const activePoll = activePolls[eventId]
 
   // Debug logging
@@ -28,6 +28,8 @@ export default function PollTrigger({ eventId, onPollClick }: PollTriggerProps) 
         active: activePoll.active,
         event_id: activePoll.event_id
       })
+    } else {
+      console.log('PollTrigger: No active poll found for event:', eventId)
     }
   }, [eventId, activePolls, activePoll])
 
@@ -42,11 +44,32 @@ export default function PollTrigger({ eventId, onPollClick }: PollTriggerProps) 
     // Subscribe to real-time poll updates for this event
     const unsubscribe = subscribeToPoll(eventId)
     
+    // Also do an immediate refresh to ensure we have the latest data
+    console.log('PollTrigger: Doing immediate poll refresh for event:', eventId)
+    refreshPoll(eventId)
+    
     return () => {
       console.log('PollTrigger: Cleaning up subscription for event:', eventId)
       unsubscribe()
     }
-  }, [eventId, subscribeToPoll])
+  }, [eventId, subscribeToPoll, refreshPoll])
+
+  // Additional effect to periodically check for new polls (fallback)
+  useEffect(() => {
+    if (!eventId || activePoll) return // Only check if we don't have a poll
+    
+    console.log('PollTrigger: Setting up periodic poll check for event:', eventId)
+    
+    const interval = setInterval(() => {
+      console.log('PollTrigger: Periodic poll check for event:', eventId)
+      refreshPoll(eventId)
+    }, 5000) // Check every 5 seconds
+    
+    return () => {
+      console.log('PollTrigger: Cleaning up periodic poll check for event:', eventId)
+      clearInterval(interval)
+    }
+  }, [eventId, activePoll, refreshPoll])
 
   if (!activePoll) {
     console.log('PollTrigger: No active poll, not rendering button')

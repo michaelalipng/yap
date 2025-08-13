@@ -34,11 +34,15 @@ export function RealtimePollProvider({ children }: RealtimePollProviderProps) {
     
     try {
       isUpdatingRef.current = true
+      console.log(`RealtimePollProvider: Refreshing poll for event: ${eventId}`)
       const poll = await getActivePoll(eventId)
-      setActivePolls(prev => ({
-        ...prev,
-        [eventId]: poll
-      }))
+      console.log(`RealtimePollProvider: Retrieved poll:`, poll)
+      
+      setActivePolls(prev => {
+        const newPolls = { ...prev, [eventId]: poll }
+        console.log(`RealtimePollProvider: Updated activePolls:`, newPolls)
+        return newPolls
+      })
     } catch (error) {
       console.error('Error refreshing poll:', error)
     } finally {
@@ -52,7 +56,7 @@ export function RealtimePollProvider({ children }: RealtimePollProviderProps) {
       return subscriptionsRef.current[eventId]
     }
 
-    console.log(`Setting up real-time subscription for event: ${eventId}`)
+    console.log(`RealtimePollProvider: Setting up real-time subscription for event: ${eventId}`)
     
     // Immediately check for existing active poll when subscribing
     refreshPoll(eventId)
@@ -68,14 +72,14 @@ export function RealtimePollProvider({ children }: RealtimePollProviderProps) {
           filter: `event_id=eq.${eventId}`
         },
         async (payload) => {
-          console.log('Real-time poll change detected:', payload)
+          console.log('RealtimePollProvider: Real-time poll change detected:', payload)
           
           // Prevent recursive updates
           if (isUpdatingRef.current) return
           
           if (payload.eventType === 'INSERT' && payload.new.active) {
             // New active poll created
-            console.log('New active poll detected:', payload.new)
+            console.log('RealtimePollProvider: New active poll detected:', payload.new)
             setActivePolls(prev => ({
               ...prev,
               [eventId]: payload.new as Poll
@@ -83,14 +87,14 @@ export function RealtimePollProvider({ children }: RealtimePollProviderProps) {
           } else if (payload.eventType === 'UPDATE') {
             if (payload.new.active) {
               // Poll activated
-              console.log('Poll activated:', payload.new)
+              console.log('RealtimePollProvider: Poll activated:', payload.new)
               setActivePolls(prev => ({
                 ...prev,
                 [eventId]: payload.new as Poll
               }))
             } else {
               // Poll deactivated
-              console.log('Poll deactivated for event:', eventId)
+              console.log('RealtimePollProvider: Poll deactivated for event:', eventId)
               setActivePolls(prev => ({
                 ...prev,
                 [eventId]: null
@@ -98,7 +102,7 @@ export function RealtimePollProvider({ children }: RealtimePollProviderProps) {
             }
           } else if (payload.eventType === 'DELETE') {
             // Poll deleted
-            console.log('Poll deleted for event:', eventId)
+            console.log('RealtimePollProvider: Poll deleted for event:', eventId)
             setActivePolls(prev => ({
               ...prev,
               [eventId]: null
@@ -111,21 +115,25 @@ export function RealtimePollProvider({ children }: RealtimePollProviderProps) {
         { 
           event: '*', 
           schema: 'public', 
-          table: 'poll_options',
-          filter: `poll_id=in.(select id from polls where event_id=eq.${eventId} and active=eq.true)`
+          table: 'poll_options'
         },
         (payload) => {
-          console.log('Real-time poll options change detected:', payload)
+          console.log('RealtimePollProvider: Real-time poll options change detected:', payload)
           
-          // When poll options change, refresh the poll to ensure we have the latest data
-          // This handles cases where options are added after the poll is created
+          // When poll options change, refresh ALL active polls to ensure we have the latest data
+          // This is simpler and more reliable than complex SQL filters
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            console.log('Poll options changed, refreshing poll data...')
-            // Use a longer delay to ensure the database transaction is complete
-            // and all related data is properly saved
+            console.log('RealtimePollProvider: Poll options changed, refreshing all active polls...')
+            
+            // Refresh all active polls after a short delay
             setTimeout(() => {
-              refreshPoll(eventId)
-            }, 300)
+              Object.keys(activePolls).forEach(eventId => {
+                if (activePolls[eventId]) {
+                  console.log(`RealtimePollProvider: Refreshing poll for event ${eventId} due to options change`)
+                  refreshPoll(eventId)
+                }
+              })
+            }, 500)
           }
         }
       )
@@ -138,19 +146,24 @@ export function RealtimePollProvider({ children }: RealtimePollProviderProps) {
           filter: `event_id=eq.${eventId}`
         },
         (payload) => {
-          console.log('Real-time poll vote change detected:', payload)
+          console.log('RealtimePollProvider: Real-time poll vote change detected:', payload)
           
           // Don't call refreshPoll here to avoid infinite loops
           // Components will handle vote updates through their own subscriptions
         }
       )
       .subscribe((status) => {
-        console.log(`Subscription status for event ${eventId}:`, status)
+        console.log(`RealtimePollProvider: Subscription status for event ${eventId}:`, status)
+        if (status === 'SUBSCRIBED') {
+          console.log(`RealtimePollProvider: ✅ Successfully subscribed to event ${eventId}`)
+        } else {
+          console.log(`RealtimePollProvider: ❌ Failed to subscribe to event ${eventId}:`, status)
+        }
       })
 
     // Store the subscription and cleanup function
     const cleanup = () => {
-      console.log(`Cleaning up subscription for event: ${eventId}`)
+      console.log(`RealtimePollProvider: Cleaning up subscription for event: ${eventId}`)
       supabase.removeChannel(channel)
       delete subscriptionsRef.current[eventId]
       setActivePolls(prev => {
@@ -163,7 +176,7 @@ export function RealtimePollProvider({ children }: RealtimePollProviderProps) {
     subscriptionsRef.current[eventId] = cleanup
 
     return cleanup
-  }, [refreshPoll])
+  }, [refreshPoll, activePolls])
 
   // Cleanup subscriptions on unmount
   useEffect(() => {
@@ -172,6 +185,56 @@ export function RealtimePollProvider({ children }: RealtimePollProviderProps) {
       Object.values(currentSubscriptions).forEach(cleanup => cleanup())
     }
   }, [])
+
+  // Global subscription to catch all poll changes (for new polls)
+  useEffect(() => {
+    console.log('RealtimePollProvider: Setting up global poll subscription')
+    
+    const globalChannel = supabase
+      .channel('global-polls')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'polls'
+        },
+        async (payload) => {
+          console.log('RealtimePollProvider: Global poll change detected:', payload)
+          
+          if (payload.eventType === 'INSERT' && payload.new.active) {
+            const newPoll = payload.new as Poll
+            console.log('RealtimePollProvider: New active poll detected globally:', newPoll)
+            
+            // If this is a new active poll, add it to our activePolls state
+            if (newPoll.event_id) {
+              setActivePolls(prev => ({
+                ...prev,
+                [newPoll.event_id]: newPoll
+              }))
+              
+              // Also refresh the specific event to ensure we have all data
+              setTimeout(() => {
+                refreshPoll(newPoll.event_id)
+              }, 100)
+            }
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('RealtimePollProvider: Global subscription status:', status)
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ RealtimePollProvider: Global poll subscription active')
+        } else {
+          console.log('❌ RealtimePollProvider: Global poll subscription failed:', status)
+        }
+      })
+
+    return () => {
+      console.log('RealtimePollProvider: Cleaning up global subscription')
+      supabase.removeChannel(globalChannel)
+    }
+  }, [refreshPoll])
 
   const contextValue: RealtimePollContextType = {
     activePolls,

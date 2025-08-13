@@ -94,7 +94,7 @@ export default function SignupPage() {
   
   return (
     <div 
-      className="min-h-screen p-6 relative no-pull-refresh"
+      className="min-h-screen p-6 relative no-pull-refresh mobile-app-container"
       style={{
         backgroundColor: '#0f0f0f'
       }}

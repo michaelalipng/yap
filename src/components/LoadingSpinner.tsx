@@ -9,8 +9,8 @@ export default function LoadingSpinner() {
       }}
     >
       <div className="text-center">
-        {/* Smile image above the spinner */}
-        <div className="mb-6">
+        {/* Spinning smile image */}
+        <div className="animate-spin">
           <Image
             src="/Smile.png"
             alt="YouthHub"
@@ -18,12 +18,6 @@ export default function LoadingSpinner() {
             height={80}
             priority
           />
-        </div>
-        
-        {/* CSS-based loading spinner */}
-        <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
-          <span className="ml-3 text-yellow-400 text-lg font-medium">Loading...</span>
         </div>
       </div>
     </div>

@@ -87,8 +87,21 @@ export default function ChatPage() {
       console.log('Chat page: Checking for active polls on event:', activeEvent.id)
       console.log('Chat page: Current activePolls state:', activePolls)
       console.log('Chat page: Active poll for this event:', activePoll)
+      
+      // Debug: Log the structure of activePolls
+      console.log('Chat page: activePolls keys:', Object.keys(activePolls))
+      console.log('Chat page: activePolls values:', Object.values(activePolls))
     }
   }, [activeEvent, profile, activePolls, activePoll])
+
+  // Additional effect to monitor poll state changes
+  useEffect(() => {
+    if (activeEvent) {
+      console.log('Chat page: Poll state changed for event:', activeEvent.id)
+      console.log('Chat page: New poll state:', activePolls[activeEvent.id])
+      console.log('Chat page: All active polls:', activePolls)
+    }
+  }, [activePolls, activeEvent])
 
   // Upvote-related state
   const [messageUpvotes, setMessageUpvotes] = useState<{ [key: string]: number }>({})
@@ -1107,7 +1120,7 @@ export default function ChatPage() {
 
   return (
     <div 
-      className="h-screen flex flex-col fixed inset-0 overflow-hidden no-pull-refresh"
+      className="h-screen flex flex-col fixed inset-0 overflow-hidden no-pull-refresh mobile-app-container"
       style={{
         backgroundColor: '#0f0f0f'
       }}

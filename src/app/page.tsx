@@ -73,27 +73,25 @@ export default function Home() {
           </div>
           
           <div className="relative mx-auto w-full flex justify-center">
-            <Link href="/chat" className="block cursor-pointer">
-              <div className="relative">
-                <div 
-                  className="z-0 hover:opacity-90 transition-opacity"
-                  style={{
-                    width: '520px',
-                    height: '281px',
-                    WebkitMask: 'url(/RightBub.svg) no-repeat center',
-                    mask: 'url(/RightBub.svg) no-repeat center',
-                    backgroundColor: '#FEDC01',
-                    WebkitMaskSize: '520px 281px',
-                    maskSize: '520px 281px',
-                    WebkitMaskRepeat: 'no-repeat',
-                    maskRepeat: 'no-repeat'
-                  }}
-                />
-                <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-10 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
-                  Join the chat!
-                </h2>
-              </div>
-            </Link>
+            <div className="relative">
+              <div 
+                className="z-0 hover:opacity-90 transition-opacity"
+                style={{
+                  width: '520px',
+                  height: '281px',
+                  WebkitMask: 'url(/RightBub.svg) no-repeat center',
+                  mask: 'url(/RightBub.svg) no-repeat center',
+                  backgroundColor: '#FEDC01',
+                  WebkitMaskSize: '520px 281px',
+                  maskSize: '520px 281px',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskRepeat: 'no-repeat'
+                }}
+              />
+              <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-10 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
+                Join the chat!
+              </h2>
+            </div>
           </div>
         </main>
         
@@ -199,27 +197,25 @@ export default function Home() {
           </div>
           
           <div className="relative mb-8 mx-auto w-full flex justify-center">
-            <Link href="/chat" className="block cursor-pointer">
-              <div className="relative">
-                <div 
-                  className="z-50 hover:opacity-90 transition-opacity"
-                  style={{
-                    width: '520px',
-                    height: '281px',
-                    WebkitMask: 'url(/RightBub.svg) no-repeat center',
-                    mask: 'url(/RightBub.svg) no-repeat center',
-                    backgroundColor: '#FEDC01',
-                    WebkitMaskSize: '520px 281px',
-                    maskSize: '520px 281px',
-                    WebkitMaskRepeat: 'no-repeat',
-                    maskRepeat: 'no-repeat'
-                  }}
-                />
-                <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-50 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
-                  Join the chat!
-                </h2>
-              </div>
-            </Link>
+            <div className="relative">
+              <div 
+                className="z-50 hover:opacity-90 transition-opacity"
+                style={{
+                  width: '520px',
+                  height: '281px',
+                  WebkitMask: 'url(/RightBub.svg) no-repeat center',
+                  mask: 'url(/RightBub.svg) no-repeat center',
+                  backgroundColor: '#FEDC01',
+                  WebkitMaskSize: '520px 281px',
+                  maskSize: '520px 281px',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskRepeat: 'no-repeat'
+                }}
+              />
+              <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-50 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
+                Join the chat!
+              </h2>
+            </div>
           </div>
           
           {/* Demo: Test Verification Modal */}
@@ -303,23 +299,21 @@ export default function Home() {
         </div>
         
         <div className="relative mb-9 mx-auto w-full flex justify-center">
-          <Link href="/chat" className="block cursor-pointer">
-            <div className="relative">
-              <div 
-                className="w-[400px] h-[216px] z-50 hover:opacity-90 transition-opacity"
-                style={{
-                  WebkitMask: 'url(/RightBub.svg) no-repeat center',
-                  mask: 'url(/RightBub.svg) no-repeat center',
-                  backgroundColor: '#FEDC01',
-                  WebkitMaskSize: 'contain',
-                  maskSize: 'contain'
-                }}
-              />
-              <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-50 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
-                Join the chat!
-              </h2>
-            </div>
-          </Link>
+          <div className="relative">
+            <div 
+              className="w-[400px] h-[216px] z-50 hover:opacity-90 transition-opacity"
+              style={{
+                WebkitMask: 'url(/RightBub.svg) no-repeat center',
+                mask: 'url(/RightBub.svg) no-repeat center',
+                backgroundColor: '#FEDC01',
+                WebkitMaskSize: 'contain',
+                maskSize: 'contain'
+              }}
+            />
+            <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-50 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
+              Join the chat!
+            </h2>
+          </div>
         </div>
 
         {/* Smile SVG Pile */}
