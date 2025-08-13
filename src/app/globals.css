@@ -14,6 +14,53 @@
   --font-goldplay-black: 'Goldplay-Black', sans-serif;
 }
 
+/* Disable pull-to-refresh and overscroll behavior */
+html, body {
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* iOS-specific pull-to-refresh prevention */
+@supports (-webkit-touch-callout: none) {
+  html, body {
+    -webkit-overflow-scrolling: auto;
+    overscroll-behavior: none;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: none;
+  }
+  
+  /* Prevent elastic scrolling on iOS without breaking layout */
+  body {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
+  }
+  
+  /* Allow scrolling within containers */
+  .scrollable-content {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    height: 100%;
+  }
+}
+
+/* Prevent pull-to-refresh on specific containers */
+.no-pull-refresh {
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: auto;
+}
+
 /* Mobile Safe Area Support */
 @supports (padding: max(0px)) {
   .pb-safe {

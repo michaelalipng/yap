@@ -1107,7 +1107,7 @@ export default function ChatPage() {
 
   return (
     <div 
-      className="h-screen flex flex-col fixed inset-0 overflow-hidden"
+      className="h-screen flex flex-col fixed inset-0 overflow-hidden no-pull-refresh"
       style={{
         backgroundColor: '#0f0f0f'
       }}

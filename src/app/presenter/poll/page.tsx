@@ -305,7 +305,7 @@ export default function PollPresenterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-8 relative">
+    <div className="min-h-screen bg-black text-white p-8 relative no-pull-refresh">
       {/* Logo at top right */}
       <div className="absolute top-0 right-8 z-30">
         <Image
