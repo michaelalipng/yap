@@ -107,7 +107,7 @@ export default function Home() {
           {[...Array(100)].map((_, i) => (
             <img
               key={`${smileKey}-${i}`}
-              src="/smile.svg"
+              src="/Smile.svg"
               alt="Smile"
               className="absolute w-40 h-40 pointer-events-none select-none"
               style={{
@@ -256,7 +256,7 @@ export default function Home() {
           {[...Array(100)].map((_, i) => (
             <img
               key={`${smileKey}-${i}`}
-              src="/smile.svg"
+              src="/Smile.svg"
               alt="Smile"
               className="absolute w-40 h-40 pointer-events-none select-none"
               style={{
@@ -332,7 +332,7 @@ export default function Home() {
           {[...Array(100)].map((_, i) => (
             <img
               key={`${smileKey}-${i}`}
-              src="/smile.svg"
+              src="/Smile.svg"
               alt="Smile"
               className="absolute w-40 h-40 pointer-events-none select-none"
               style={{

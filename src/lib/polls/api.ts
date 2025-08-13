@@ -106,7 +106,19 @@ export const getPollOptions = async (pollId: string): Promise<PollOption[]> => {
     }
     
     console.log('Fetched poll options:', data)
-    return data || []
+    console.log('Poll options count:', data?.length || 0)
+    
+    // If no options found, create some default options
+    if (!data || data.length === 0) {
+      console.log('No poll options found, creating default options')
+      const defaultOptions = [
+        { id: 'yes', poll_id: pollId, label: 'Yes', position: 0, created_at: new Date().toISOString() },
+        { id: 'no', poll_id: pollId, label: 'No', position: 1, created_at: new Date().toISOString() }
+      ]
+      return defaultOptions
+    }
+    
+    return data
   } catch (error) {
     console.error('Error fetching poll options:', error)
     return []
@@ -240,6 +252,41 @@ export const getPollResults = async (pollId: string): Promise<PollResult[]> => {
     })
   } catch (error) {
     console.error('Error fetching poll results:', error)
+    return []
+  }
+}
+
+// Get live results for a poll using existing options (prevents duplicate API calls)
+export const getPollResultsWithOptions = async (pollId: string, options: PollOption[]): Promise<PollResult[]> => {
+  try {
+    // First get all votes for this poll
+    const { data: votes } = await supabase
+      .from('poll_votes')
+      .select('option_id')
+      .eq('poll_id', pollId)
+      .throwOnError()
+    
+    // Count votes per option
+    const voteCounts: { [key: string]: number } = {}
+    votes?.forEach(vote => {
+      voteCounts[vote.option_id] = (voteCounts[vote.option_id] || 0) + 1
+    })
+    
+    const totalVotes = Object.values(voteCounts).reduce((sum: number, count: number) => sum + count, 0)
+
+    return options.map(option => {
+      const voteCount = voteCounts[option.id] || 0
+      const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0
+
+      return {
+        option_id: option.id,
+        option_text: option.label,
+        vote_count: voteCount,
+        percentage
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching poll results with options:', error)
     return []
   }
 }

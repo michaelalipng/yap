@@ -7,7 +7,7 @@ import { BarChart3, CheckCircle, X } from 'lucide-react'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import ErrorModal from '@/components/ErrorModal'
 import { useErrorModal } from '@/lib/useErrorModal'
-import { Poll, PollOption, PollResult, PollVote, getPollOptions, getMyVote, castVote, getPollResults, subscribePollVotes } from '@/lib/polls/api'
+import { Poll, PollOption, PollResult, PollVote, getPollOptions, getMyVote, castVote, getPollResults, getPollResultsWithOptions, subscribePollVotes } from '@/lib/polls/api'
 
 interface PollModalProps {
   poll: Poll
@@ -16,6 +16,9 @@ interface PollModalProps {
 }
 
 export default function PollModal({ poll, userId, onClose }: PollModalProps) {
+  console.log('PollModal: Received poll:', poll)
+  console.log('PollModal: Received userId:', userId)
+  
   const { showPollVoteError, hideError, ...errorModalState } = useErrorModal()
   const [options, setOptions] = useState<PollOption[]>([])
   const [results, setResults] = useState<PollResult[]>([])
@@ -40,6 +43,21 @@ export default function PollModal({ poll, userId, onClose }: PollModalProps) {
     } finally {
       setResultsLoading(false)
     }
+  }, [poll.id])
+
+  // Load poll results using existing options (prevents duplicate API calls)
+  const loadResultsWithOptions = useCallback(async (pollOptions: PollOption[]) => {
+    if (resultsLoading) return // Prevent multiple simultaneous calls
+    
+    setResultsLoading(true)
+    try {
+      const pollResults = await getPollResultsWithOptions(poll.id, pollOptions)
+      setResults(pollResults)
+    } catch (error) {
+      console.error('Error loading poll results with options:', error)
+    } finally {
+      setResultsLoading(false)
+    }
   }, [poll.id, resultsLoading])
 
   // Load poll results with loading state protection
@@ -60,19 +78,24 @@ export default function PollModal({ poll, userId, onClose }: PollModalProps) {
           getMyVote(poll.id, userId)
         ])
         
+        console.log('PollModal: Loaded options:', pollOptions)
+        console.log('PollModal: Loaded user vote:', myVote)
+        
         setOptions(pollOptions)
         setUserVote(myVote)
         
         // If user has already voted, show results immediately
         if (myVote) {
           setShowResults(true)
-          await loadResults()
+          // Load results using the options we already have
+          await loadResultsWithOptions(pollOptions)
         }
       } catch (error) {
         console.error('Error loading poll data:', error)
         // Don't show error modal for loading errors to prevent loops
         // Just log the error and continue
       } finally {
+        console.log('PollModal: Setting optionsLoading to false')
         setOptionsLoading(false)
       }
     }
@@ -98,7 +121,7 @@ export default function PollModal({ poll, userId, onClose }: PollModalProps) {
       const success = await castVote(poll.id, optionId)
       if (success) {
         // Refresh results and show them
-        await loadResults()
+        await loadResultsWithOptions(options)
         setShowResults(true)
         
         // Update local state to show user has voted
