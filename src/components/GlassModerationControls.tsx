@@ -27,7 +27,7 @@ export default function GlassModerationControls({
   isPinned,
   onModeration
 }: GlassModerationControlsProps) {
-  const { getColor } = useTheme()
+  const { getColor, getSpacing } = useTheme()
 
   const gradientMapping = {
     blue: 'linear-gradient(hsl(var(--primary)), hsl(var(--primary)))',

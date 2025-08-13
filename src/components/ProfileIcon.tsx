@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { 
   Bird, Bug, Cat, Dog, Fish, Panda, Rabbit, Rat, Shrimp, Turtle, Squirrel, Snail,
   Egg, Apple, Bean, Candy, Carrot, Citrus, Grape, Croissant, Hamburger, Pizza, Sandwich, Cookie,
@@ -10,7 +12,7 @@ interface ProfileIconProps {
   size?: number
 }
 
-const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+const iconMap: Record<string, React.ComponentType<any>> = {
   Bird,
   Bug,
   Cat,
@@ -56,7 +58,7 @@ export default function ProfileIcon({ profileIcon, className = "h-4 w-4", size }
     if (process.env.NODE_ENV === 'development') {
       console.log(`ProfileIcon: Found exact match for "${normalizedIcon}"`)
     }
-    IconComponent = iconMap[normalizedIcon]
+    IconComponent = iconMap[normalizedIcon] as any
   } else if (normalizedIcon) {
     // Try case-insensitive matching
     const iconKey = Object.keys(iconMap).find(key => 
@@ -66,7 +68,7 @@ export default function ProfileIcon({ profileIcon, className = "h-4 w-4", size }
       if (process.env.NODE_ENV === 'development') {
         console.log(`ProfileIcon: Found case-insensitive match "${iconKey}" for "${normalizedIcon}"`)
       }
-      IconComponent = iconMap[iconKey]
+      IconComponent = iconMap[iconKey] as any
     } else {
       // If no match found, fall back to Dog (default icon)
       if (process.env.NODE_ENV === 'development') {

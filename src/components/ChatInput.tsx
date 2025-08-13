@@ -136,9 +136,9 @@ export default function ChatInput({
         <div 
           className="frozen-warning absolute -top-12 left-0 right-0 text-center p-2 rounded-lg"
           style={{
-            background: getColor('error.50'),
-            border: `2px solid ${getColor('error.200')}`,
-            color: getColor('error.700'),
+            background: getColor('error.50') as string,
+            border: `2px solid ${getColor('error.200') as string}`,
+            color: getColor('error.700') as string,
             fontSize: '0.875rem',
             fontWeight: 500
           }}
@@ -157,8 +157,8 @@ export default function ChatInput({
           disabled={disabled || isFrozen}
           className="quick-action-btn text-sm px-2 py-1 rounded"
           style={{
-            background: getColor('neutral.100'),
-            color: getColor('neutral.600'),
+            background: getColor('neutral.100') as string,
+            color: getColor('neutral.600') as string,
             border: 'none',
             cursor: disabled || isFrozen ? 'not-allowed' : 'pointer',
             transition: 'all 0.2s ease'
@@ -171,8 +171,8 @@ export default function ChatInput({
           disabled={disabled || isFrozen}
           className="quick-action-btn text-sm px-2 py-1 rounded"
           style={{
-            background: getColor('neutral.100'),
-            color: getColor('neutral.600'),
+            background: getColor('neutral.100') as string,
+            color: getColor('neutral.600') as string,
             border: 'none',
             cursor: disabled || isFrozen ? 'not-allowed' : 'pointer',
             transition: 'all 0.2s ease'
@@ -185,8 +185,8 @@ export default function ChatInput({
           disabled={disabled || isFrozen}
           className="quick-action-btn text-sm px-2 py-1 rounded"
           style={{
-            background: getColor('neutral.100'),
-            color: getColor('neutral.600'),
+            background: getColor('neutral.100') as string,
+            color: getColor('neutral.600') as string,
             border: 'none',
             cursor: disabled || isFrozen ? 'not-allowed' : 'pointer',
             transition: 'all 0.2s ease'

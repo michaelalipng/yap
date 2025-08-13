@@ -16,7 +16,7 @@ export default function PollResultsPanel() {
     results: { option_id: string; option_text: string; vote_count: number; percentage: number }[];
   }[]>([])
   const [loading, setLoading] = useState(false)
-  const [_selectedPoll, setSelectedPoll] = useState<string | null>(null)
+  const [selectedPoll, setSelectedPoll] = useState<string | null>(null)
   const [_animateResults, setAnimateResults] = useState(false)
 
   useEffect(() => {
@@ -193,9 +193,7 @@ export default function PollResultsPanel() {
           return (
             <Card 
               key={poll.id} 
-              className={`transition-all duration-500 ${
-                animateResults ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              }`}
+              className="transition-all duration-500 opacity-100 translate-y-0"
               style={{ transitionDelay: `${index * 100}ms` }}
             >
               <CardHeader className="pb-3">

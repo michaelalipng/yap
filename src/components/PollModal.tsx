@@ -110,6 +110,7 @@ export default function PollModal({ poll, userId, onClose }: PollModalProps) {
             option_id: optionId,
             user_id: userId,
             event_id: poll.event_id,
+            unique: `${poll.id}-${optionId}-${userId}`,
             created_at: new Date().toISOString()
           })
         }

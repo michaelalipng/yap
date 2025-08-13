@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react'
 import themeConfig from './themeConfig.json'
 
@@ -17,7 +18,7 @@ export const useTheme = () => {
     let value: unknown = theme.colors
     
     for (const key of path) {
-      value = value?.[key]
+      value = (value as any)?.[key]
     }
     
     return value || '#000000'

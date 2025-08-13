@@ -56,7 +56,7 @@ export default function EmojiReactions({
         <div className="flex items-center gap-2 mb-2">
           <span 
             className="reactions-label text-sm font-medium"
-            style={{ color: getColor('neutral.600') }}
+            style={{ color: getColor('neutral.600') as string }}
           >
             Quick Reactions:
           </span>
@@ -110,7 +110,7 @@ export default function EmojiReactions({
         
         <div 
           className="reactions-hint text-xs text-center mt-2"
-          style={{ color: getColor('neutral.500') }}
+          style={{ color: getColor('neutral.500') as string }}
         >
           Click an emoji to react! 🎉
         </div>
