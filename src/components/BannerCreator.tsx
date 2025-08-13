@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase, emojiChannel } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function BannerCreator() {
   const [message, setMessage] = useState('')
@@ -47,12 +47,8 @@ export default function BannerCreator() {
       setShareMessage('')
       setDurationMinutes(5)
       
-      // Broadcast banner update to all connected users
-      emojiChannel.send({
-        type: 'broadcast',
-        event: 'banner_update',
-        payload: { action: 'refresh' },
-      })
+      // Banner created successfully - could add real-time notification here if needed
+      console.log('Banner created successfully')
     }
   }
 
