@@ -198,13 +198,17 @@ export default function ChatPage() {
     
     // Add emoji to the list
     setFloatingEmojis((prev) => {
-      // Limit to maximum 30 emojis to prevent performance issues
-      const maxEmojis = 30
+      // Limit to maximum 15 emojis to prevent performance issues and allow more rapid sending
+      const maxEmojis = 15
       if (prev.length >= maxEmojis) {
         // Remove oldest emojis if we're at the limit
-        return [...prev.slice(-maxEmojis + 1), { emoji, id: emojiId, startX }]
+        const newList = [...prev.slice(-maxEmojis + 1), { emoji, id: emojiId, startX }]
+        console.log('Emoji limit reached, removed oldest, new count:', newList.length)
+        return newList
       }
-      return [...prev, { emoji, id: emojiId, startX }]
+      const newList = [...prev, { emoji, id: emojiId, startX }]
+      console.log('Added emoji, new count:', newList.length)
+      return newList
     })
 
     // Clear the emoji after 5 seconds
@@ -753,7 +757,7 @@ export default function ChatPage() {
       return
     }
 
-    console.log('Chat: Emoji clicked:', emoji, 'at timestamp:', Date.now())
+    console.log('Chat: Emoji clicked:', emoji, 'at timestamp:', Date.now(), 'floating emojis count:', floatingEmojis.length)
 
     // 1. Show local animation immediately (no await)
     animateEmoji(emoji)
@@ -1244,7 +1248,7 @@ export default function ChatPage() {
         {floatingEmojis.map((emojiObj) => (
           <div
             key={emojiObj.id}
-            className="absolute text-4xl"
+            className="absolute text-4xl floating-emoji"
             style={{
               left: `${emojiObj.startX}%`,
               bottom: '120px',

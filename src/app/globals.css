@@ -1222,8 +1222,6 @@ html, body {
   will-change: transform, opacity;
   backface-visibility: hidden;
   transform-style: preserve-3d;
-  /* Use transform3d for hardware acceleration */
-  transform: translate3d(0, 0, 0);
   /* Reduce repaints and improve performance */
   contain: layout style paint;
   pointer-events: none;
@@ -1233,10 +1231,6 @@ html, body {
   -ms-user-select: none;
   /* Smooth animations */
   transition: none;
-  /* Force hardware acceleration */
-  -webkit-transform: translate3d(0, 0, 0);
-  -moz-transform: translate3d(0, 0, 0);
-  -ms-transform: translate3d(0, 0, 0);
   /* High-volume optimizations */
   isolation: isolate;
   /* Reduce layer creation */
