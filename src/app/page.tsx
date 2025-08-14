@@ -94,7 +94,7 @@ export default function Home() {
 
         {/* Smile SVG Pile */}
         <div 
-          className="fixed bottom-0 left-0 w-full h-64 cursor-pointer z-10 select-none" 
+          className="smile-container" 
           style={{ marginLeft: '-68px' }}
           onClick={refreshSmiles}
           title="Click to refresh smiles!"
@@ -104,16 +104,12 @@ export default function Home() {
               key={`${smileKey}-${i}`}
               src="/Smile.svg"
               alt="Smile"
-              className="absolute w-40 h-40 pointer-events-none select-none"
+              className="smile-item"
               style={{
                 left: `${(i % 15) * 6.67 + Math.random() * 2}%`,
                 bottom: `${Math.random() * 32}%`,
                 transform: `rotate(${Math.random() * 360}deg)`,
-                zIndex: Math.floor(Math.random() * 10),
-                userSelect: 'none',
-                WebkitUserSelect: 'none',
-                MozUserSelect: 'none',
-                msUserSelect: 'none'
+                zIndex: Math.floor(Math.random() * 10)
               }}
             />
           ))}
@@ -239,7 +235,7 @@ export default function Home() {
         
         {/* Smile SVG Pile */}
         <div 
-          className="fixed bottom-0 left-0 w-full h-64 cursor-pointer z-10 select-none" 
+          className="smile-container" 
           style={{ marginLeft: '-68px' }}
           onClick={refreshSmiles}
           title="Click to refresh smiles!"
@@ -249,16 +245,12 @@ export default function Home() {
               key={`${smileKey}-${i}`}
               src="/Smile.svg"
               alt="Smile"
-              className="absolute w-40 h-40 pointer-events-none select-none"
+              className="smile-item"
               style={{
                 left: `${(i % 15) * 6.67 + Math.random() * 2}%`,
                 bottom: `${Math.random() * 32}%`,
                 transform: `rotate(${Math.random() * 360}deg)`,
-                zIndex: Math.floor(Math.random() * 10),
-                userSelect: 'none',
-                WebkitUserSelect: 'none',
-                MozUserSelect: 'none',
-                msUserSelect: 'none'
+                zIndex: Math.floor(Math.random() * 10)
               }}
             />
           ))}
@@ -313,7 +305,7 @@ export default function Home() {
 
         {/* Smile SVG Pile */}
         <div 
-          className="fixed bottom-0 left-0 w-full h-64 cursor-pointer z-10 select-none" 
+          className="smile-container" 
           style={{ marginLeft: '-68px' }}
           onClick={refreshSmiles}
           title="Click to refresh smiles!"
@@ -323,16 +315,12 @@ export default function Home() {
               key={`${smileKey}-${i}`}
               src="/Smile.svg"
               alt="Smile"
-              className="absolute w-40 h-40 pointer-events-none select-none"
+              className="smile-item"
               style={{
                 left: `${(i % 15) * 6.67 + Math.random() * 2}%`,
                 bottom: `${Math.random() * 32}%`,
                 transform: `rotate(${Math.random() * 360}deg)`,
-                zIndex: Math.floor(Math.random() * 10),
-                userSelect: 'none',
-                WebkitUserSelect: 'none',
-                MozUserSelect: 'none',
-                msUserSelect: 'none'
+                zIndex: Math.floor(Math.random() * 10)
               }}
             />
           ))}

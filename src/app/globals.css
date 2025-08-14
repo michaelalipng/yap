@@ -222,6 +222,16 @@ button, a, [role="button"], [tabindex], label {
   -ms-user-select: none !important;
 }
 
+/* Optimize emoji buttons for rapid clicking */
+.emoji-button {
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
 /* Ensure emoji buttons are responsive */
 .emoji-button:active {
   transform: scale(0.95) !important;
@@ -1348,19 +1358,69 @@ input, textarea, select {
   font-size: 16px !important;
 }
 
-/* Optimize emoji buttons for rapid clicking */
-.emoji-button {
-  touch-action: manipulation !important;
-  -webkit-tap-highlight-color: transparent !important;
+/* Loading Spinner Animation */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile Message Input Positioning - Critical for keyboard visibility */
+.chat-textarea {
+  position: relative !important;
+  z-index: 1000 !important;
+}
+
+/* Ensure message input stays above keyboard on mobile */
+@media (max-width: 768px) {
+  .chat-textarea {
+    position: relative !important;
+    z-index: 1000 !important;
+    /* Force input to stay visible above keyboard */
+    transform: none !important;
+    -webkit-transform: none !important;
+  }
+  
+  /* Message input container positioning */
+  .fixed.bottom-0 {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+    /* Ensure it stays above keyboard */
+    background: rgba(0, 0, 0, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+  }
+}
+
+/* Home page smile positioning fixes */
+.smile-container {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 16rem !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.smile-item {
+  position: absolute !important;
+  width: 10rem !important;
+  height: 10rem !important;
+  pointer-events: none !important;
   user-select: none !important;
   -webkit-user-select: none !important;
   -moz-user-select: none !important;
   -ms-user-select: none !important;
-}
-
-/* Ensure emoji buttons are responsive */
-.emoji-button:active {
-  transform: scale(0.95) !important;
-  -webkit-transform: scale(0.95) !important;
-  transition: transform 0.05s ease-out !important;
 }
