@@ -90,22 +90,6 @@ export default function Home() {
               </h2>
             </Link>
           </div>
-          
-          {/* Additional call-to-action buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
-            <Link 
-              href="/login"
-              className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-semibold px-8 py-4 rounded-xl hover:from-yellow-300 hover:to-yellow-400 transform hover:scale-105 transition-all duration-200 shadow-lg"
-            >
-              Sign In
-            </Link>
-            <Link 
-              href="/signup"
-              className="bg-black/20 backdrop-blur-sm border border-gray-800 text-white font-semibold px-8 py-4 rounded-xl hover:bg-black/30 hover:border-gray-700 transform hover:scale-105 transition-all duration-200 shadow-lg"
-            >
-              Create Account
-            </Link>
-          </div>
         </div>
 
         {/* Smile SVG Pile */}

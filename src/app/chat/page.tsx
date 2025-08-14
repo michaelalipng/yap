@@ -1199,7 +1199,7 @@ export default function ChatPage() {
       <div className="flex-1 flex flex-col min-h-0 mt-16 sm:mt-20">
         {/* Scrollable Messages Area - Takes remaining space with safe bottom margin */}
         <div className="flex-1 overflow-hidden pb-36 sm:pb-32">
-          <ScrollArea className="h-full px-3 sm:px-4 md:px-6 py-4" ref={scrollAreaRef}>
+          <ScrollArea className="h-full px-3 sm:px-4 md:px-6 py-4" ref={scrollAreaRef} type="always">
             <div className="space-y-3 sm:space-y-4">
               {/* No Active Event Message */}
               {!activeEvent && (

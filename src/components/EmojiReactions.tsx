@@ -43,6 +43,7 @@ export default function EmojiReactions({
       showVerificationModal('emoji reactions')
       return
     }
+    // Allow immediate emoji sending without any delays
     onEmojiClick(emoji)
   }
 
