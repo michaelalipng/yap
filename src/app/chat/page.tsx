@@ -79,7 +79,7 @@ export default function ChatPage() {
   const { activePolls } = useRealtimePolls()
   const activePoll = activeEvent ? activePolls[activeEvent.id] : null
 
-  // Check for active poll on page load
+  // Check for active poll on page load and monitor changes
   useEffect(() => {
     if (activeEvent && profile) {
       // The RealtimePollProvider will automatically check for active polls
@@ -91,17 +91,13 @@ export default function ChatPage() {
       // Debug: Log the structure of activePolls
       console.log('Chat page: activePolls keys:', Object.keys(activePolls))
       console.log('Chat page: activePolls values:', Object.values(activePolls))
-    }
-  }, [activeEvent, profile, activePolls])
-
-  // Additional effect to monitor poll state changes
-  useEffect(() => {
-    if (activeEvent) {
+      
+      // Log poll state changes
       console.log('Chat page: Poll state changed for event:', activeEvent.id)
       console.log('Chat page: New poll state:', activePolls[activeEvent.id])
       console.log('Chat page: All active polls:', activePolls)
     }
-  }, [activePolls, activeEvent])
+  }, [activeEvent, profile, activePolls])
 
   // Upvote-related state
   const [messageUpvotes, setMessageUpvotes] = useState<{ [key: string]: number }>({})

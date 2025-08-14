@@ -127,8 +127,10 @@ export function RealtimePollProvider({ children }: RealtimePollProviderProps) {
             
             // Refresh all active polls after a short delay
             setTimeout(() => {
-              Object.keys(activePolls).forEach(eventId => {
-                if (activePolls[eventId]) {
+              // Use a ref to get current activePolls state without dependency
+              const currentActivePolls = subscriptionsRef.current
+              Object.keys(currentActivePolls).forEach(eventId => {
+                if (currentActivePolls[eventId]) {
                   console.log(`RealtimePollProvider: Refreshing poll for event ${eventId} due to options change`)
                   refreshPoll(eventId)
                 }
@@ -176,7 +178,7 @@ export function RealtimePollProvider({ children }: RealtimePollProviderProps) {
     subscriptionsRef.current[eventId] = cleanup
 
     return cleanup
-  }, [refreshPoll, activePolls])
+  }, [refreshPoll]) // Removed activePolls dependency to prevent circular dependency
 
   // Cleanup subscriptions on unmount
   useEffect(() => {
