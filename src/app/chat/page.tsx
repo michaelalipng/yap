@@ -4,9 +4,10 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { connectEmoji, sendEmoji, onEmoji } from '@/lib/realtime/emoji'
+import { connectEmoji, sendEmoji, onEmoji, cleanupEmojiChannels } from '@/lib/realtime/emoji'
 import { useRouter } from 'next/navigation'
 import { useRealtimePolls } from '@/components/RealtimePollProvider'
+import { useAuth } from '@/components/AuthProvider'
 import ChatBanner from '@/components/ChatBanner'
 import Message from '@/components/Message'
 import { Button } from '@/components/ui/button'
@@ -60,6 +61,7 @@ type Profile = {
 
 export default function ChatPage() {
   const router = useRouter()
+  const { user, isAuthenticated, loading: authLoading } = useAuth()
   const { showVerificationModal, isVerificationModalOpen, featureName, hideVerificationModal } = useVerificationModal()
   
   // State management for chat functionality
@@ -99,6 +101,41 @@ export default function ChatPage() {
   // Verification prompt state
   const [showVerificationPrompt, setShowVerificationPrompt] = useState(false)
   const [verificationFeature, setVerificationFeature] = useState('')
+
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login')
+    }
+  }, [authLoading, isAuthenticated, router])
+
+  // Prevent zoom on mobile devices
+  useEffect(() => {
+    // Force viewport meta tag to prevent zooming
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
+    }
+    
+    // Additional zoom prevention for mobile
+    const preventZoom = () => {
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
+      }
+    };
+    
+    // Prevent zoom on various events
+    document.addEventListener('focusin', preventZoom);
+    document.addEventListener('touchstart', preventZoom);
+    document.addEventListener('gesturestart', preventZoom);
+    
+    return () => {
+      document.removeEventListener('focusin', preventZoom);
+      document.removeEventListener('touchstart', preventZoom);
+      document.removeEventListener('gesturestart', preventZoom);
+    };
+  }, []);
 
 
 
@@ -141,15 +178,34 @@ export default function ChatPage() {
   const animateEmoji = useCallback((emoji: string) => {
     const emojiId = `${emoji}-${Date.now()}-${Math.random()}`
     
-    // Generate random position, avoiding the last used position
+    // Generate random position with better distribution for rapid emoji sending
     let randomPosition: number
-    do {
-      randomPosition = Math.floor(Math.random() * 15) // 0-14
-    } while (randomPosition === lastPosition)
+    let attempts = 0
+    const maxAttempts = 10
     
-    const startX = 10 + randomPosition * 5.33 // Convert to percentage
+    do {
+      randomPosition = Math.floor(Math.random() * 20) // Increased to 20 positions (0-19)
+      attempts++
+      // If we can't find a unique position after max attempts, just use any position
+      if (attempts >= maxAttempts) {
+        randomPosition = Math.floor(Math.random() * 20)
+        break
+      }
+    } while (randomPosition === lastPosition && attempts < maxAttempts)
+    
+    const startX = 5 + randomPosition * 4.5 // Adjusted spacing for 20 positions
     setLastPosition(randomPosition)
-    setFloatingEmojis((prev) => [...prev, { emoji, id: emojiId, startX }])
+    
+    // Add emoji to the list
+    setFloatingEmojis((prev) => {
+      // Limit to maximum 30 emojis to prevent performance issues
+      const maxEmojis = 30
+      if (prev.length >= maxEmojis) {
+        // Remove oldest emojis if we're at the limit
+        return [...prev.slice(-maxEmojis + 1), { emoji, id: emojiId, startX }]
+      }
+      return [...prev, { emoji, id: emojiId, startX }]
+    })
 
     // Clear the emoji after 5 seconds
     setTimeout(() => {
@@ -159,14 +215,9 @@ export default function ChatPage() {
 
   useEffect(() => {
     const init = async () => {
-      const {
-        data: { user },
-        error
-      } = await supabase.auth.getUser()
-
-      if (!user || error) {
-        router.push('/login')
-        return
+      // Use user from auth context instead of fetching
+      if (!user) {
+        return // Wait for auth to initialize
       }
 
       const { data: profileData } = await supabase
@@ -314,6 +365,14 @@ export default function ChatPage() {
       cleanup?.()
     }
   }, [activeEvent?.id])
+
+  // Cleanup emoji channels when component unmounts
+  useEffect(() => {
+    return () => {
+      console.log('Chat: Component unmounting, cleaning up emoji channels')
+      cleanupEmojiChannels()
+    }
+  }, [])
 
   // Real-time subscription for flags
   useEffect(() => {
@@ -680,7 +739,7 @@ export default function ChatPage() {
     }
   }
 
-  // Handle emoji reaction clicks
+  // Handle emoji reaction clicks with optimized rapid sending
   const handleEmojiClick = async (emoji: string) => {
     // Check if there's an active event
     if (!activeEvent) {
@@ -694,17 +753,20 @@ export default function ChatPage() {
       return
     }
 
-    // 1. Show local animation
-    animateEmoji(emoji)
+    console.log('Chat: Emoji clicked:', emoji, 'at timestamp:', Date.now())
 
-    // 2. Broadcast to others using the new helper
-    try {
-      console.log('Chat: Broadcasting emoji:', emoji)
-      await sendEmoji(activeEvent.id, { emoji, uid: profile.id })
-      console.log('Chat: Emoji broadcast sent successfully')
-    } catch (error) {
-      console.error('Chat: Error broadcasting emoji:', error)
-    }
+    // 1. Show local animation immediately (no await)
+    animateEmoji(emoji)
+    console.log('Chat: Local emoji animation triggered')
+
+    // 2. Broadcast to others using the new helper (fire and forget for rapid sending)
+    sendEmoji(activeEvent.id, { emoji, uid: profile.id })
+      .then(() => {
+        console.log('Chat: Emoji broadcast sent successfully')
+      })
+      .catch((error) => {
+        console.error('Chat: Error broadcasting emoji:', error)
+      })
   }
 
   // Refresh profile data to get updated star counts
@@ -1085,11 +1147,11 @@ export default function ChatPage() {
     setShowPollModal(false)
   }
 
-  if (loading) return <LoadingSpinner />
+  if (loading || authLoading || !isAuthenticated) return <LoadingSpinner />
 
   return (
     <div 
-      className="h-screen flex flex-col fixed inset-0 overflow-hidden no-pull-refresh mobile-app-container"
+      className="h-screen flex flex-col fixed inset-0 overflow-hidden no-pull-refresh mobile-app-container prevent-zoom chat-page-container"
       style={{
         backgroundColor: '#0f0f0f'
       }}
@@ -1382,7 +1444,7 @@ export default function ChatPage() {
                 <button
                   key={emoji}
                   onClick={() => handleEmojiClick(emoji)}
-                  className="text-2xl hover:scale-125 transition-transform duration-200 p-1"
+                  className="text-2xl hover:scale-125 transition-transform duration-200 p-1 emoji-button"
                 >
                   {emoji}
                 </button>
@@ -1413,11 +1475,12 @@ export default function ChatPage() {
         <div className="flex gap-2 max-w-4xl mx-auto px-2">
           <div className="flex-1 relative">
             <Textarea
-              className="flex-1 resize-none rounded-full border-0 bg-muted/30 py-3 px-4 text-sm sm:text-base"
+              className="flex-1 resize-none rounded-full border-0 bg-muted/30 py-3 px-4 text-sm sm:text-base prevent-zoom no-zoom chat-textarea"
               style={{ 
                 minHeight: '44px', 
                 maxHeight: '44px',
-                lineHeight: '1.2'
+                lineHeight: '1.2',
+                fontSize: '16px'
               }}
               placeholder=""
               value={newMessage}
@@ -1426,6 +1489,27 @@ export default function ChatPage() {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
                   handleSend()
+                }
+              }}
+              onFocus={(e) => {
+                // Force viewport scale to prevent zoom
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                  viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
+                }
+              }}
+              onTouchStart={(e) => {
+                // Prevent zoom on touch start
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                  viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
+                }
+              }}
+              onTouchMove={(e) => {
+                // Prevent zoom on touch move
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                  viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
                 }
               }}
               disabled={!activeEvent}

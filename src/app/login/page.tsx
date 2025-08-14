@@ -3,15 +3,25 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/components/AuthProvider'
 import Image from "next/image"
 import { gothamUltra } from '@/lib/fonts'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(true)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      router.push('/chat')
+    }
+  }, [isAuthenticated, authLoading, router])
 
   // Disable scrolling when component mounts
   useEffect(() => {
@@ -28,14 +38,50 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      })
 
-    if (error) {
-      setError(error.message)
+      if (error) {
+        setError(error.message)
+      } else {
+        // Set remember me preference
+        if (rememberMe) {
+          localStorage.setItem('youthhub.rememberMe', 'true')
+          // Extend session duration for remember me users
+          await supabase.auth.refreshSession()
+        } else {
+          localStorage.removeItem('youthhub.rememberMe')
+        }
+        
+        // Save last login timestamp
+        localStorage.setItem('youthhub.lastLogin', Date.now().toString())
+        
+        // Redirect will happen automatically via auth state change
+        console.log('Login successful, redirecting...')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed')
+    } finally {
       setLoading(false)
-    } else {
-      router.push('/chat')
     }
+  }
+
+  // Show loading spinner while auth is initializing
+  if (authLoading) {
+    return (
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: '#0f0f0f' }}
+      >
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -95,6 +141,20 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+              </div>
+              
+              {/* Remember Me Checkbox */}
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 text-yellow-400 focus:ring-yellow-400 border-gray-600 rounded bg-white/10"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">
+                  Keep me signed in
+                </label>
               </div>
             </div>
 

@@ -98,6 +98,251 @@
 }
 
 /* Hide scrollbar on mobile but keep functionality */
+
+/* Prevent zoom on input focus for mobile devices */
+input, textarea, select {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+  transform-origin: left top !important;
+  -webkit-transform-origin: left top !important;
+}
+
+/* Prevent zoom on focus for iOS */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  input:focus, textarea:focus, select:focus {
+    font-size: 16px !important;
+    transform: scale(1) !important;
+    -webkit-transform: scale(1) !important;
+    -webkit-text-size-adjust: 100% !important;
+  }
+}
+
+/* Additional zoom prevention classes */
+.no-zoom {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+  transform: scale(1) !important;
+  -webkit-transform: scale(1) !important;
+}
+
+/* Force viewport scale to prevent zoom */
+.prevent-zoom {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
+/* Chat page specific zoom prevention */
+.chat-page-container {
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+  transform: scale(1) !important;
+  -webkit-transform: scale(1) !important;
+}
+
+.chat-page-container * {
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
+/* Mobile-specific zoom prevention */
+@media (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px !important;
+    -webkit-text-size-adjust: 100% !important;
+    -moz-text-size-adjust: 100% !important;
+    -ms-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+  }
+  
+  input:focus, textarea:focus, select:focus {
+    font-size: 16px !important;
+    transform: scale(1) !important;
+    -webkit-transform: scale(1) !important;
+    -webkit-text-size-adjust: 100% !important;
+  }
+  
+  /* Specific styling for chat textarea */
+  .chat-textarea {
+    font-size: 16px !important;
+    -webkit-text-size-adjust: 100% !important;
+    -moz-text-size-adjust: 100% !important;
+    -ms-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+    transform: scale(1) !important;
+    -webkit-transform: scale(1) !important;
+  }
+  
+  .chat-textarea:focus {
+    font-size: 16px !important;
+    transform: scale(1) !important;
+    -webkit-transform: scale(1) !important;
+    -webkit-text-size-adjust: 100% !important;
+  }
+}
+
+/* Global zoom prevention for entire app */
+html, body {
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+  transform: scale(1) !important;
+  -webkit-transform: scale(1) !important;
+}
+
+/* Prevent zoom on all interactive elements */
+button, a, [role="button"], [tabindex], label {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
+/* Optimize emoji buttons for rapid clicking */
+.emoji-button {
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Ensure emoji buttons are responsive */
+.emoji-button:active {
+  transform: scale(0.95) !important;
+  -webkit-transform: scale(0.95) !important;
+  transition: transform 0.05s ease-out !important;
+}
+
+/* Force all elements to maintain scale */
+* {
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
+/* Prevent any form of scaling */
+.no-scale, .prevent-scale {
+  transform: scale(1) !important;
+  -webkit-transform: scale(1) !important;
+  -moz-transform: scale(1) !important;
+  -ms-transform: scale(1) !important;
+}
+
+/* Additional mobile zoom prevention */
+@media (max-width: 1024px) {
+  html, body {
+    -webkit-text-size-adjust: 100% !important;
+    -moz-text-size-adjust: 100% !important;
+    -ms-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+  }
+  
+  /* Prevent zoom on all touch interactions */
+  * {
+    touch-action: manipulation !important;
+  }
+  
+  /* Allow only pan-y for scrollable elements */
+  .scrollable, .overflow-auto, .overflow-y-auto {
+    touch-action: pan-y !important;
+  }
+}
+
+/* Ultimate zoom prevention - applies to entire app */
+html.prevent-zoom, body.prevent-zoom {
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+  transform: scale(1) !important;
+  -webkit-transform: scale(1) !important;
+  -moz-transform: scale(1) !important;
+  -ms-transform: scale(1) !important;
+}
+
+html.no-scale, body.no-scale {
+  transform: scale(1) !important;
+  -webkit-transform: scale(1) !important;
+  -moz-transform: scale(1) !important;
+  -ms-transform: scale(1) !important;
+}
+
+html.prevent-scale, body.prevent-scale {
+  transform: scale(1) !important;
+  -webkit-transform: scale(1) !important;
+  -moz-transform: scale(1) !important;
+  -ms-transform: scale(1) !important;
+}
+
+/* Force all child elements to maintain scale */
+.prevent-zoom *, .no-scale *, .prevent-scale * {
+  transform: scale(1) !important;
+  -webkit-transform: scale(1) !important;
+  -moz-transform: scale(1) !important;
+  -ms-transform: scale(1) !important;
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
+/* Prevent zoom on all pages and components */
+.app-container, .page-container, .component-container {
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+  transform: scale(1) !important;
+  -webkit-transform: scale(1) !important;
+  -moz-transform: scale(1) !important;
+  -ms-transform: scale(1) !important;
+}
+
+/* Nuclear option - prevent zoom on absolutely everything */
+* {
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
+/* Force all elements to maintain their scale */
+*:not(.allow-zoom) {
+  transform: scale(1) !important;
+  -webkit-transform: scale(1) !important;
+  -moz-transform: scale(1) !important;
+  -ms-transform: scale(1) !important;
+}
+
+/* Ensure all text inputs are 16px to prevent iOS zoom */
+input, textarea, select {
+  font-size: 16px !important;
+}
+
+/* Prevent any scaling on focus */
+input:focus, textarea:focus, select:focus {
+  transform: scale(1) !important;
+  -webkit-transform: scale(1) !important;
+  -moz-transform: scale(1) !important;
+  -ms-transform: scale(1) !important;
+}
 @media (max-width: 768px) {
   .chat-scroll-container > div[style*="overflow-y: auto"]::-webkit-scrollbar {
     width: 0px;
