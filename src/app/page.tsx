@@ -50,7 +50,7 @@ export default function Home() {
   if (!user) {
     return (
       <div 
-        className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 relative"
+        className="font-sans grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 relative"
         style={{
           backgroundColor: '#0f0f0f'
         }}
@@ -64,18 +64,18 @@ export default function Home() {
             priority
           />
         </div>
-        <main className="flex flex-col gap-[32px] row-start-2 items-start sm:items-start mt-32 w-full">
+        <main className="flex flex-col gap-[32px] items-center justify-center w-full">
           <div className="mb-8">
-            <h1 className={`${gothamUltra.className} text-6xl sm:text-7xl md:text-8xl text-white leading-tight relative z-20`}>
+            <h1 className={`${gothamUltra.className} text-6xl sm:text-7xl md:text-8xl text-white leading-tight relative z-20 text-center`}>
               What&apos;s up,<br />
               {getUserName(user)}!
             </h1>
           </div>
           
           <div className="relative mx-auto w-full flex justify-center">
-            <div className="relative">
+            <Link href="/chat" className="relative block">
               <div 
-                className="z-0 hover:opacity-90 transition-opacity"
+                className="z-0 hover:opacity-90 transition-opacity cursor-pointer"
                 style={{
                   width: '520px',
                   height: '281px',
@@ -91,7 +91,7 @@ export default function Home() {
               <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-10 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
                 Join the chat!
               </h2>
-            </div>
+            </Link>
           </div>
         </main>
         
@@ -129,7 +129,7 @@ export default function Home() {
   if (!completionStatus.isComplete) {
     return (
       <div 
-        className="min-h-screen p-6 relative"
+        className="min-h-screen p-6 relative flex flex-col"
         style={{
           backgroundColor: '#0f0f0f'
         }}
@@ -145,7 +145,7 @@ export default function Home() {
         </div>
         <HamburgerMenu profile={profile} isMod={profile?.role === 'mod' || profile?.role === 'speaker'} />
         
-                {/* Profile Completion Circle - Added to the right */}
+        {/* Profile Completion Circle - Added to the right */}
         <div className="absolute top-6 right-6 z-30">
           <Link href="/profile" className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer">
             <span className="text-white text-sm font-semibold">
@@ -186,20 +186,18 @@ export default function Home() {
           </Link>
         </div>
         
-        <div className="max-w-4xl mx-auto mt-32">
-
-          
+        <div className="flex-1 flex flex-col justify-center max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className={`${gothamUltra.className} text-6xl sm:text-7xl md:text-8xl text-white leading-tight relative z-20`}>
+            <h1 className={`${gothamUltra.className} text-6xl sm:text-7xl md:text-8xl text-white leading-tight relative z-20 text-center`}>
               What&apos;s up,<br />
               {profile?.first_name || "friend"}!
             </h1>
           </div>
           
           <div className="relative mb-8 mx-auto w-full flex justify-center">
-            <div className="relative">
+            <Link href="/chat" className="relative block">
               <div 
-                className="z-50 hover:opacity-90 transition-opacity"
+                className="z-50 hover:opacity-90 transition-opacity cursor-pointer"
                 style={{
                   width: '520px',
                   height: '281px',
@@ -215,7 +213,7 @@ export default function Home() {
               <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-50 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
                 Join the chat!
               </h2>
-            </div>
+            </Link>
           </div>
           
           {/* Demo: Test Verification Modal */}
@@ -275,7 +273,7 @@ export default function Home() {
   // If profile is complete, show full dashboard
   return (
     <div 
-      className="min-h-screen p-6 relative"
+      className="min-h-screen p-6 relative flex flex-col"
       style={{
         backgroundColor: '#0f0f0f'
       }}
@@ -290,18 +288,18 @@ export default function Home() {
         />
       </div>
       <HamburgerMenu profile={profile} isMod={profile?.role === 'mod' || profile?.role === 'speaker'} />
-      <div className="max-w-4xl mx-auto mt-32">
+      <div className="flex-1 flex flex-col justify-center max-w-4xl mx-auto">
         <div className="mb-8">
-                      <h1 className={`${gothamUltra.className} text-6xl sm:text-7xl md:text-8xl text-white leading-tight relative z-20`}>
-              What&apos;s up,<br />
-              {profile?.first_name || "friend"}!
-            </h1>
+          <h1 className={`${gothamUltra.className} text-6xl sm:text-7xl md:text-8xl text-white leading-tight relative z-20 text-center`}>
+            What&apos;s up,<br />
+            {profile?.first_name || "friend"}!
+          </h1>
         </div>
         
         <div className="relative mb-9 mx-auto w-full flex justify-center">
-          <div className="relative">
+          <Link href="/chat" className="relative block">
             <div 
-              className="w-[400px] h-[216px] z-50 hover:opacity-90 transition-opacity"
+              className="w-[400px] h-[216px] z-50 hover:opacity-90 transition-opacity cursor-pointer"
               style={{
                 WebkitMask: 'url(/RightBub.svg) no-repeat center',
                 mask: 'url(/RightBub.svg) no-repeat center',
@@ -313,7 +311,7 @@ export default function Home() {
             <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-50 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
               Join the chat!
             </h2>
-          </div>
+          </Link>
         </div>
 
         {/* Smile SVG Pile */}

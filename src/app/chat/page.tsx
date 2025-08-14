@@ -86,13 +86,13 @@ export default function ChatPage() {
       // and update the activePolls state via real-time subscriptions
       console.log('Chat page: Checking for active polls on event:', activeEvent.id)
       console.log('Chat page: Current activePolls state:', activePolls)
-      console.log('Chat page: Active poll for this event:', activePoll)
+      console.log('Chat page: Active poll for this event:', activePolls[activeEvent.id])
       
       // Debug: Log the structure of activePolls
       console.log('Chat page: activePolls keys:', Object.keys(activePolls))
       console.log('Chat page: activePolls values:', Object.values(activePolls))
     }
-  }, [activeEvent, profile, activePolls, activePoll])
+  }, [activeEvent, profile, activePolls])
 
   // Additional effect to monitor poll state changes
   useEffect(() => {
@@ -149,13 +149,13 @@ export default function ChatPage() {
   const isMod = profile?.role === 'mod' || profile?.role === 'speaker'
 
   // Function to fetch and update polls (now handled by real-time context)
-  const fetchPolls = async () => {
+  const fetchPolls = useCallback(async () => {
     // Polls are now automatically updated via real-time subscriptions
     console.log('Polls are automatically updated via real-time subscriptions')
-  }
+  }, [])
 
   // Auto-scroll to bottom function
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
@@ -166,7 +166,7 @@ export default function ChatPage() {
         behavior: 'smooth'
       })
     }
-  }
+  }, [])
 
   // Animate emoji function (used for both local and remote emojis)
   const animateEmoji = useCallback((emoji: string) => {
@@ -462,12 +462,7 @@ export default function ChatPage() {
     }
   }, [activeEvent?.id])
 
-  // Ensure profiles are loaded when component mounts
-  useEffect(() => {
-    if (profile && Object.keys(profileMap).length === 0) {
-      refreshProfiles()
-    }
-  }, [profile])
+
 
   // Auto-scroll to bottom when messages are loaded or new messages arrive
   useEffect(() => {
@@ -479,7 +474,7 @@ export default function ChatPage() {
       
       return () => clearTimeout(timer)
     }
-  }, [messages.length, loading])
+  }, [messages.length, loading, scrollToBottom])
 
   // Force scroll to bottom on initial load
   useEffect(() => {
@@ -487,7 +482,7 @@ export default function ChatPage() {
       // Immediate scroll for initial load
       scrollToBottom()
     }
-  }, [loading]) // Only trigger on loading state change
+  }, [loading, scrollToBottom]) // Only trigger on loading state change
 
   // Subscribe to message changes for the current active event
   useEffect(() => {
@@ -546,7 +541,7 @@ export default function ChatPage() {
     if (activeEvent && profile) {
       fetchPolls()
     }
-  }, [activeEvent, profile])
+  }, [activeEvent, profile, fetchPolls])
 
   // Poll state debugging removed - now handled by PollTrigger component
 
@@ -565,7 +560,7 @@ export default function ChatPage() {
         lastMessageId.current = currentLastMessageId
       }
     }
-  }, [messages])
+  }, [messages, scrollToBottom])
 
   // Handle clicking outside emoji bar and poll callout to close them
   useEffect(() => {
@@ -626,16 +621,7 @@ export default function ChatPage() {
 
 
 
-  // Set up event countdown interval
-  useEffect(() => {
-    // Calculate initial countdown
-    calculateEventCountdown()
 
-    // Set up interval to update countdown every minute
-    const interval = setInterval(calculateEventCountdown, 60000)
-
-    return () => clearInterval(interval)
-  }, [activeEvent])
 
   // Handle sending new messages with moderation checks
   const handleSend = async () => {
@@ -753,7 +739,7 @@ export default function ChatPage() {
   }
 
   // Refresh profile data to get updated star counts
-  const refreshProfiles = async () => {
+  const refreshProfiles = useCallback(async () => {
     const { data: allProfiles, error } = await supabase
       .from('profiles')
       .select('id, username, star_count, profile_icon')
@@ -779,10 +765,17 @@ export default function ChatPage() {
       // Note: Profile updates are no longer broadcast via emoji channel
       // as we're using the new event-specific emoji system
     }
-  }
+  }, [])
+
+  // Ensure profiles are loaded when component mounts
+  useEffect(() => {
+    if (profile && Object.keys(profileMap).length === 0) {
+      refreshProfiles()
+    }
+  }, [profile, refreshProfiles])
 
   // Calculate event countdown
-  const calculateEventCountdown = () => {
+  const calculateEventCountdown = useCallback(() => {
     if (!activeEvent) {
       setEventCountdown({})
       return
@@ -822,10 +815,21 @@ export default function ChatPage() {
     }
 
     setEventCountdown({ timeToStart, timeToEnd })
-  }
+  }, [activeEvent])
+
+  // Set up event countdown interval
+  useEffect(() => {
+    // Calculate initial countdown
+    calculateEventCountdown()
+
+    // Set up interval to update countdown every minute
+    const interval = setInterval(calculateEventCountdown, 60000)
+
+    return () => clearInterval(interval)
+  }, [activeEvent, calculateEventCountdown])
 
   // Load upvote data for all messages
-  const loadUpvotes = async () => {
+  const loadUpvotes = useCallback(async () => {
     if (!profile) return
 
     try {
@@ -881,7 +885,7 @@ export default function ChatPage() {
     } catch (error) {
       console.error('Error loading upvotes:', error)
     }
-  }
+  }, [profile])
 
   // Handle upvote toggle
   const handleUpvote = async (messageId: string) => {
@@ -941,7 +945,7 @@ export default function ChatPage() {
   }
 
   // Handle moderation actions (approve, deny, star, pin, unpin)
-  const handleModeration = async (
+  const handleModeration = useCallback(async (
     id: string,
     action: 'approve' | 'deny' | 'star' | 'unstar' | 'pin' | 'unpin'
   ) => {
@@ -990,7 +994,7 @@ export default function ChatPage() {
     if (action === 'star' || action === 'unstar') {
       await refreshProfiles()
     }
-  }
+  }, [messages, refreshProfiles])
 
   // Keyboard shortcuts for moderation (only for moderators)
   useEffect(() => {
@@ -1017,7 +1021,7 @@ export default function ChatPage() {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isMod, messages])
+  }, [isMod, messages, handleModeration])
 
   // Handle banner creation
   const handleCreateBanner = async (title: string, link: string, bannerType: string, durationMinutes: number, messageText?: string) => {

@@ -271,8 +271,8 @@ export default function ProfilePage() {
             )}
 
             <div className="space-y-2">
-              {/* First and Last Name - Side by side */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* First and Last Name - Side by side with better mobile spacing */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3">
                 <div>
                   <label className={`${gothamMedium.className} block text-sm font-medium text-gray-300 mb-1`}>
                     First Name
@@ -298,8 +298,8 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Birthday and School - Side by side */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Birthday and School - Side by side with better mobile spacing */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3">
                 <div>
                   <label className={`${gothamMedium.className} block text-sm font-medium text-gray-300 mb-1`}>
                     Birthday
@@ -325,8 +325,8 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Email and Phone - Side by side */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Email and Phone - Side by side with better mobile spacing */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3">
                 <div>
                   <label className={`${gothamMedium.className} block text-sm font-medium text-gray-300 mb-1`}>
                     Email
@@ -358,7 +358,7 @@ export default function ProfilePage() {
                 <label className={`${gothamMedium.className} block text-sm font-medium text-gray-300 mb-2`}>
                   Profile Icon
                 </label>
-                <div className="grid grid-cols-8 gap-2">
+                <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
                   {[
                     { name: 'Bird', icon: Bird },
                     { name: 'Bug', icon: Bug },
