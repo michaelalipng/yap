@@ -4,6 +4,9 @@ import "./globals.css";
 import { RealtimePollProvider } from "../components/RealtimePollProvider";
 import { gothamMedium, gothamUltra, goldplayBlack } from "../lib/fonts";
 
+// Add version for cache busting
+const CSS_VERSION = Date.now();
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -32,7 +35,10 @@ export const metadata: Metadata = {
     'apple-mobile-web-app-title': 'YouthHub',
     'application-name': 'YouthHub',
     'msapplication-TileColor': '#000000',
-    'theme-color': '#000000'
+    'theme-color': '#000000',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
   }
 };
 
@@ -47,6 +53,31 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // Force mobile browsers to reload and clear cache
+              if (typeof window !== 'undefined') {
+                // Clear any cached styles
+                const links = document.querySelectorAll('link[rel="stylesheet"]');
+                links.forEach(link => {
+                  const href = link.getAttribute('href');
+                  if (href) {
+                    link.setAttribute('href', href + '?v=${CSS_VERSION}');
+                  }
+                });
+                
+                // Force reload on mobile if cache is detected
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) {
+                      registration.unregister();
+                    }
+                  });
+                }
+                
+                // Clear localStorage and sessionStorage
+                localStorage.clear();
+                sessionStorage.clear();
+              }
+              
               // Prevent pull-to-refresh on mobile devices
               document.addEventListener('DOMContentLoaded', function() {
                 let startY = 0;

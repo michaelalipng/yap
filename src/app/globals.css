@@ -1,3 +1,10 @@
+/* YouthHub Mobile Styles - Version 2.0 - Cache Busting Enabled */
+/* This file has been updated to fix mobile layout issues */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
