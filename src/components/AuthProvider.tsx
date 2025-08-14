@@ -184,11 +184,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
             }
             break
             
-          case 'USER_DELETED':
-            setUser(null)
-            setSession(null)
-            setIsAuthenticated(false)
-            router.push('/login')
+          case 'USER_UPDATED':
+            if (session) {
+              setUser(session.user)
+              setSession(session)
+            }
             break
             
           case 'MFA_CHALLENGE_VERIFIED':

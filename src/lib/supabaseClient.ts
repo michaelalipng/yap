@@ -21,15 +21,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     flowType: 'pkce',
     
     // Debug mode in development
-    debug: process.env.NODE_ENV === 'development',
-    
-    // Session timeout settings
-    sessionTimeout: 60 * 60 * 24 * 7, // 7 days in seconds
-    
-    // Multi-factor authentication settings
-    multiFactor: {
-      enabled: false
-    }
+    debug: process.env.NODE_ENV === 'development'
   },
   
   // Global configuration

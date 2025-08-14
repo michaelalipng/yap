@@ -42,15 +42,15 @@ export function onEmoji(eventId: string, cb: (p: EmojiPayload) => void) {
     console.log('Reusing existing emoji channel for listening:', eventId)
     const existingChannel = channelCache.get(eventId)
     
-    // Add the callback to the existing channel
-    existingChannel.on(
-      'broadcast',
-      { event: 'emoji' },
-      ({ payload }) => {
-        console.log('Emoji received on channel:', eventId, payload)
-        cb(payload as EmojiPayload)
-      }
-    )
+          // Add the callback to the existing channel
+      existingChannel.on(
+        'broadcast',
+        { event: 'emoji' },
+        ({ payload }: { payload: any }) => {
+          console.log('Emoji received on channel:', eventId, payload)
+          cb(payload as EmojiPayload)
+        }
+      )
     
     return () => {
       console.log('Removing emoji listener from channel:', eventId)

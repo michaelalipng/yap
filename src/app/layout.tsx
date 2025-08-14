@@ -50,7 +50,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="prevent-zoom no-scale prevent-scale">
+    <html lang="en">
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -140,365 +140,374 @@ export default function RootLayout({
                   });
                 }
                 
-                              // iOS specific: prevent address bar from showing
-              if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-                // Prevent zoom on double tap
-                let lastTouchEnd = 0;
-                document.addEventListener('touchend', function(event) {
-                  const now = (new Date()).getTime();
-                  if (now - lastTouchEnd <= 300) {
-                    event.preventDefault();
-                  }
-                  lastTouchEnd = now;
-                }, false);
-                
-                // Prevent address bar from showing
-                window.addEventListener('load', function() {
-                  setTimeout(function() {
-                    window.scrollTo(0, 1);
-                  }, 0);
-                });
-              }
-              
-              // Prevent zoom on input focus for all mobile devices
-              function preventInputZoom() {
-                // Add CSS to prevent zoom
-                const style = document.createElement('style');
-                style.textContent = `
-                  input, textarea, select {
-                    font-size: 16px !important;
-                    transform-origin: left top;
-                    -webkit-transform-origin: left top;
-                  }
-                  
-                  /* Prevent zoom on focus for iOS */
-                  @media screen and (-webkit-min-device-pixel-ratio: 0) {
-                    input:focus, textarea:focus, select:focus {
-                      font-size: 16px !important;
-                      transform: scale(1) !important;
-                      -webkit-transform: scale(1) !important;
+                // iOS specific: prevent address bar from showing
+                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                  // Prevent zoom on double tap
+                  let lastTouchEnd = 0;
+                  document.addEventListener('touchend', function(event) {
+                    const now = (new Date()).getTime();
+                    if (now - lastTouchEnd <= 300) {
+                      event.preventDefault();
                     }
-                  }
+                    lastTouchEnd = now;
+                  }, false);
                   
-                  /* Additional zoom prevention */
-                  .no-zoom {
-                    font-size: 16px !important;
-                    -webkit-text-size-adjust: 100%;
-                    -moz-text-size-adjust: 100%;
-                    -ms-text-size-adjust: 100%;
-                    text-size-adjust: 100%;
-                  }
-                `;
-                document.head.appendChild(style);
+                  // Prevent address bar from showing
+                  window.addEventListener('load', function() {
+                    setTimeout(function() {
+                      window.scrollTo(0, 1);
+                    }, 0);
+                  });
+                }
                 
-                // Prevent zoom on input focus
-                const inputs = document.querySelectorAll('input, textarea, select');
-                inputs.forEach(input => {
-                  input.addEventListener('focus', function(e) {
-                    // Force viewport scale to 1
+                // Prevent zoom on input focus for all mobile devices
+                function preventInputZoom() {
+                  // Add CSS to prevent zoom
+                  const style = document.createElement('style');
+                  style.textContent = \`
+                    input, textarea, select {
+                      font-size: 16px !important;
+                      transform-origin: left top;
+                      -webkit-transform-origin: left top;
+                    }
+                    
+                    /* Prevent zoom on focus for iOS */
+                    @media screen and (-webkit-min-device-pixel-ratio: 0) {
+                      input:focus, textarea:focus, select:focus {
+                        font-size: 16px !important;
+                        transform: scale(1) !important;
+                        -webkit-transform: scale(1) !important;
+                      }
+                    }
+                    
+                    /* Additional zoom prevention */
+                    .no-zoom {
+                      font-size: 16px !important;
+                      -webkit-text-size-adjust: 100%;
+                      -moz-text-size-adjust: 100%;
+                      -ms-text-size-adjust: 100%;
+                      text-size-adjust: 100%;
+                    }
+                  \`;
+                  document.head.appendChild(style);
+                  
+                  // Prevent zoom on input focus
+                  const inputs = document.querySelectorAll('input, textarea, select');
+                  inputs.forEach(input => {
+                    input.addEventListener('focus', function(e) {
+                      // Force viewport scale to 1
+                      const viewport = document.querySelector('meta[name="viewport"]');
+                      if (viewport) {
+                        viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
+                      }
+                      
+                      // Add no-zoom class
+                      this.classList.add('no-zoom');
+                      
+                      // Prevent any scaling
+                      this.style.transform = 'scale(1)';
+                      this.style.webkitTransform = 'scale(1)';
+                    });
+                    
+                    input.addEventListener('blur', function(e) {
+                      // Remove no-zoom class
+                      this.classList.remove('no-zoom');
+                    });
+                  });
+                  
+                  // Monitor for dynamically added inputs
+                  const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                      if (mutation.type === 'childList') {
+                        mutation.addedNodes.forEach(function(node) {
+                          if (node.nodeType === 1) { // Element node
+                            const newInputs = node.querySelectorAll ? node.querySelectorAll('input, textarea, select') : [];
+                            newInputs.forEach(input => {
+                              input.addEventListener('focus', function(e) {
+                                const viewport = document.querySelector('meta[name="viewport"]');
+                                if (viewport) {
+                                  viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
+                                }
+                                this.classList.add('no-zoom');
+                                this.style.transform = 'scale(1)';
+                                this.style.webkitTransform = 'scale(1)';
+                              });
+                              
+                              input.addEventListener('blur', function(e) {
+                                this.classList.remove('no-zoom');
+                              });
+                            });
+                          }
+                        });
+                      }
+                    });
+                  });
+                  
+                  // Observe the entire document for new content
+                  observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                  });
+                  
+                  // Also observe the head for any new meta tags
+                  observer.observe(document.head, {
+                    childList: true,
+                    subtree: true
+                  });
+                }
+                
+                // Initialize zoom prevention
+                preventInputZoom();
+                
+                // Global zoom prevention for the entire app
+                function preventGlobalZoom() {
+                  // Prevent zoom on double tap
+                  let lastTouchEnd = 0;
+                  document.addEventListener('touchend', function(event) {
+                    const now = (new Date()).getTime();
+                    if (now - lastTouchEnd <= 300) {
+                      event.preventDefault();
+                    }
+                    lastTouchEnd = now;
+                  }, false);
+                  
+                  // Prevent zoom on pinch gestures
+                  document.addEventListener('gesturestart', function(event) {
+                    event.preventDefault();
+                  }, false);
+                  
+                  document.addEventListener('gesturechange', function(event) {
+                    event.preventDefault();
+                  }, false);
+                  
+                  document.addEventListener('gestureend', function(event) {
+                    event.preventDefault();
+                  }, false);
+                  
+                  // Prevent zoom on wheel events
+                  document.addEventListener('wheel', function(event) {
+                    if (event.ctrlKey) {
+                      event.preventDefault();
+                    }
+                  }, { passive: false });
+                  
+                  // Prevent zoom on keyboard shortcuts
+                  document.addEventListener('keydown', function(event) {
+                    if (event.ctrlKey && (event.key === '+' || event.key === '-' || event.key === '=')) {
+                      event.preventDefault();
+                    }
+                  });
+                  
+                  // Force viewport scale on various events
+                  const forceViewportScale = () => {
                     const viewport = document.querySelector('meta[name="viewport"]');
                     if (viewport) {
                       viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
                     }
-                    
-                    // Add no-zoom class
-                    this.classList.add('no-zoom');
-                    
-                    // Prevent any scaling
-                    this.style.transform = 'scale(1)';
-                    this.style.webkitTransform = 'scale(1)';
+                  };
+                  
+                  // Apply viewport scale on multiple events
+                  ['load', 'resize', 'orientationchange', 'focusin', 'touchstart', 'gesturestart'].forEach(eventType => {
+                    document.addEventListener(eventType, forceViewportScale, { passive: true });
                   });
                   
-                  input.addEventListener('blur', function(e) {
-                    // Remove no-zoom class
-                    this.classList.remove('no-zoom');
-                  });
-                });
-                
-                // Monitor for dynamically added inputs
-                const observer = new MutationObserver(function(mutations) {
-                  mutations.forEach(function(mutation) {
-                    if (mutation.type === 'childList') {
-                      mutation.addedNodes.forEach(function(node) {
-                        if (node.nodeType === 1) { // Element node
-                          const newInputs = node.querySelectorAll ? node.querySelectorAll('input, textarea, select') : [];
-                          newInputs.forEach(input => {
-                            input.addEventListener('focus', function(e) {
-                              const viewport = document.querySelector('meta[name="viewport"]');
-                              if (viewport) {
-                                viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
-                              }
-                              this.classList.add('no-zoom');
-                              this.style.transform = 'scale(1)';
-                              this.style.webkitTransform = 'scale(1)';
-                            });
-                            
-                            input.addEventListener('blur', function(e) {
-                              this.classList.remove('no-zoom');
-                            });
-                          });
+                  // Monitor for viewport changes and force scale
+                  const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                      if (mutation.type === 'attributes' && mutation.attributeName === 'content') {
+                        const viewport = mutation.target;
+                        if (viewport && !viewport.content.includes('user-scalable=no')) {
+                          forceViewportScale();
                         }
-                      });
-                    }
+                      }
+                    });
                   });
-                });
-                
-                observer.observe(document.body, {
-                  childList: true,
-                  subtree: true
-                });
-              }
-              
-                            // Initialize zoom prevention
-              preventInputZoom();
-              
-              // Global zoom prevention for the entire app
-              function preventGlobalZoom() {
-                // Prevent zoom on double tap
-                let lastTouchEnd = 0;
-                document.addEventListener('touchend', function(event) {
-                  const now = (new Date()).getTime();
-                  if (now - lastTouchEnd <= 300) {
-                    event.preventDefault();
-                  }
-                  lastTouchEnd = now;
-                }, false);
-                
-                // Prevent zoom on pinch gestures
-                document.addEventListener('gesturestart', function(event) {
-                  event.preventDefault();
-                }, false);
-                
-                document.addEventListener('gesturechange', function(event) {
-                  event.preventDefault();
-                }, false);
-                
-                document.addEventListener('gestureend', function(event) {
-                  event.preventDefault();
-                }, false);
-                
-                // Prevent zoom on wheel events
-                document.addEventListener('wheel', function(event) {
-                  if (event.ctrlKey) {
-                    event.preventDefault();
-                  }
-                }, { passive: false });
-                
-                // Prevent zoom on keyboard shortcuts
-                document.addEventListener('keydown', function(event) {
-                  if (event.ctrlKey && (event.key === '+' || event.key === '-' || event.key === '=')) {
-                    event.preventDefault();
-                  }
-                });
-                
-                // Force viewport scale on various events
-                const forceViewportScale = () => {
+                  
+                  // Observe viewport meta tag for changes
                   const viewport = document.querySelector('meta[name="viewport"]');
                   if (viewport) {
-                    viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
-                  }
-                };
-                
-                // Apply viewport scale on multiple events
-                ['load', 'resize', 'orientationchange', 'focusin', 'touchstart', 'gesturestart'].forEach(eventType => {
-                  document.addEventListener(eventType, forceViewportScale, { passive: true });
-                });
-                
-                // Monitor for viewport changes and force scale
-                const observer = new MutationObserver(function(mutations) {
-                  mutations.forEach(function(mutation) {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'content') {
-                      const viewport = mutation.target as HTMLMetaElement;
-                      if (viewport && !viewport.content.includes('user-scalable=no')) {
-                        forceViewportScale();
-                      }
-                    }
-                  });
-                });
-                
-                // Observe viewport meta tag for changes
-                const viewport = document.querySelector('meta[name="viewport"]');
-                if (viewport) {
-                  observer.observe(viewport, { attributes: true });
-                }
-                
-                // Add CSS to prevent zoom globally
-                const globalStyle = document.createElement('style');
-                globalStyle.textContent = `
-                  /* Global zoom prevention */
-                  * {
-                    -webkit-text-size-adjust: 100% !important;
-                    -moz-text-size-adjust: 100% !important;
-                    -ms-text-size-adjust: 100% !important;
-                    text-size-adjust: 100% !important;
-                    transform-origin: left top !important;
-                    -webkit-transform-origin: left top !important;
+                    observer.observe(viewport, { attributes: true });
                   }
                   
-                  /* Prevent zoom on all interactive elements */
-                  input, textarea, select, button, a, [role="button"], [tabindex] {
-                    font-size: 16px !important;
-                    -webkit-text-size-adjust: 100% !important;
-                    -moz-text-size-adjust: 100% !important;
-                    -ms-text-size-adjust: 100% !important;
-                    text-size-adjust: 100% !important;
-                  }
-                  
-                  /* Force scale on focus */
-                  input:focus, textarea:focus, select:focus {
-                    transform: scale(1) !important;
-                    -webkit-transform: scale(1) !important;
-                    font-size: 16px !important;
-                  }
-                  
-                  /* Prevent any scaling */
-                  .no-zoom, .prevent-zoom {
-                    transform: scale(1) !important;
-                    -webkit-transform: scale(1) !important;
-                    font-size: 16px !important;
-                  }
-                  
-                  /* Mobile-specific zoom prevention */
-                  @media (max-width: 768px) {
-                    html, body {
-                      -webkit-text-size-adjust: 100% !important;
-                      -moz-text-size-adjust: 100% !important;
-                      -ms-text-size-adjust: 100% !important;
-                      text-size-adjust: 100% !important;
-                    }
-                    
+                  // Add CSS to prevent zoom globally
+                  const globalStyle = document.createElement('style');
+                  globalStyle.textContent = \`
+                    /* Global zoom prevention */
                     * {
                       -webkit-text-size-adjust: 100% !important;
                       -moz-text-size-adjust: 100% !important;
                       -ms-text-size-adjust: 100% !important;
                       text-size-adjust: 100% !important;
+                      transform-origin: left top !important;
+                      -webkit-transform-origin: left top !important;
                     }
-                  }
-                `;
-                document.head.appendChild(globalStyle);
-              }
-              
-              // Initialize global zoom prevention
-              preventGlobalZoom();
-              
-              // Apply zoom prevention to any new content added to the DOM
-              function applyZoomPreventionToNewContent() {
-                const observer = new MutationObserver(function(mutations) {
-                  mutations.forEach(function(mutation) {
-                    if (mutation.type === 'childList') {
-                      mutation.addedNodes.forEach(function(node) {
-                        if (node.nodeType === 1) { // Element node
-                          const element = node as Element;
-                          
-                          // Apply zoom prevention classes
-                          element.classList.add('prevent-zoom', 'no-scale', 'prevent-scale');
-                          
-                          // Apply to all child elements
-                          const allElements = element.querySelectorAll('*');
-                          allElements.forEach(child => {
-                            child.classList.add('prevent-zoom', 'no-scale', 'prevent-scale');
-                          });
-                          
-                          // Force viewport scale
-                          const viewport = document.querySelector('meta[name="viewport"]');
-                          if (viewport) {
-                            viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
+                    
+                    /* Prevent zoom on all interactive elements */
+                    input, textarea, select, button, a, [role="button"], [tabindex] {
+                      font-size: 16px !important;
+                      -webkit-text-size-adjust: 100% !important;
+                      -moz-text-size-adjust: 100% !important;
+                      -ms-text-size-adjust: 100% !important;
+                      text-size-adjust: 100% !important;
+                    }
+                    
+                    /* Force scale on focus */
+                    input:focus, textarea:focus, select:focus {
+                      transform: scale(1) !important;
+                      -webkit-transform: scale(1) !important;
+                      font-size: 16px !important;
+                    }
+                    
+                    /* Prevent any scaling */
+                    .no-zoom, .prevent-zoom {
+                      transform: scale(1) !important;
+                      -webkit-transform: scale(1) !important;
+                      font-size: 16px !important;
+                    }
+                    
+                    /* Mobile-specific zoom prevention */
+                    @media (max-width: 768px) {
+                      html, body {
+                        -webkit-text-size-adjust: 100% !important;
+                        -moz-text-size-adjust: 100% !important;
+                        -ms-text-size-adjust: 100% !important;
+                        text-size-adjust: 100% !important;
+                      }
+                      
+                      * {
+                        -webkit-text-size-adjust: 100% !important;
+                        -moz-text-size-adjust: 100% !important;
+                        -ms-text-size-adjust: 100% !important;
+                        text-size-adjust: 100% !important;
+                      }
+                    }
+                  \`;
+                  document.head.appendChild(globalStyle);
+                }
+                
+                // Initialize global zoom prevention
+                preventGlobalZoom();
+                
+                // Apply zoom prevention to any new content added to the DOM
+                function applyZoomPreventionToNewContent() {
+                  const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                      if (mutation.type === 'childList') {
+                        mutation.addedNodes.forEach(function(node) {
+                          if (node.nodeType === 1) { // Element node
+                            const element = node;
+                            
+                            // Apply zoom prevention classes
+                            element.classList.add('prevent-zoom', 'no-scale', 'prevent-scale');
+                            
+                            // Apply to all child elements
+                            const allElements = element.querySelectorAll('*');
+                            allElements.forEach(child => {
+                              child.classList.add('prevent-zoom', 'no-scale', 'prevent-scale');
+                            });
+                            
+                            // Force viewport scale
+                            const viewport = document.querySelector('meta[name="viewport"]');
+                            if (viewport) {
+                              viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
+                            }
                           }
-                        }
-                      });
-                    }
+                        });
+                      }
+                    });
                   });
-                });
-                
-                // Observe the entire document for new content
-                observer.observe(document.body, {
-                  childList: true,
-                  subtree: true
-                });
-                
-                // Also observe the head for any new meta tags
-                observer.observe(document.head, {
-                  childList: true,
-                  subtree: true
-                });
-              }
-              
-              // Initialize content monitoring
-              applyZoomPreventionToNewContent();
-              
-              // Final viewport enforcement
-              function enforceViewport() {
-                const viewport = document.querySelector('meta[name="viewport"]');
-                if (viewport) {
-                  viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
+                  
+                  // Observe the entire document for new content
+                  observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                  });
+                  
+                  // Also observe the head for any new meta tags
+                  observer.observe(document.head, {
+                    childList: true,
+                    subtree: true
+                  });
                 }
                 
-                // Force all elements to have zoom prevention
-                document.querySelectorAll('*').forEach(element => {
-                  element.classList.add('prevent-zoom', 'no-scale', 'prevent-scale');
-                });
-              }
-              
-              // Session persistence helpers
-              function setupSessionPersistence() {
-                // Save session activity timestamp
-                const saveActivity = () => {
-                  if (typeof window !== 'undefined') {
-                    localStorage.setItem('youthhub.lastActivity', Date.now().toString())
+                // Initialize content monitoring
+                applyZoomPreventionToNewContent();
+                
+                // Final viewport enforcement
+                function enforceViewport() {
+                  const viewport = document.querySelector('meta[name="viewport"]');
+                  if (viewport) {
+                    viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no');
                   }
+                  
+                  // Force all elements to have zoom prevention
+                  document.querySelectorAll('*').forEach(element => {
+                    element.classList.add('prevent-zoom', 'no-scale', 'prevent-scale');
+                  });
                 }
                 
-                // Save activity on various events
-                ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(eventType => {
-                  document.addEventListener(eventType, saveActivity, { passive: true })
-                })
-                
-                // Save activity on page visibility change
-                document.addEventListener('visibilitychange', () => {
-                  if (!document.hidden) {
-                    saveActivity()
-                  }
-                })
-                
-                // Save activity on window focus
-                window.addEventListener('focus', saveActivity)
-                
-                // Check session validity periodically
-                setInterval(() => {
-                  const lastActivity = localStorage.getItem('youthhub.lastActivity')
-                  if (lastActivity) {
-                    const timeSinceActivity = Date.now() - parseInt(lastActivity)
-                    // If no activity for 30 days, clear session
-                    if (timeSinceActivity > 30 * 24 * 60 * 60 * 1000) {
-                      console.log('Session expired due to inactivity, clearing...')
-                      localStorage.removeItem('youthhub.lastActivity')
-                      localStorage.removeItem('youthhub.rememberMe')
+                // Session persistence helpers
+                function setupSessionPersistence() {
+                  // Save session activity timestamp
+                  const saveActivity = () => {
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('youthhub.lastActivity', Date.now().toString())
                     }
                   }
-                }, 60 * 60 * 1000) // Check every hour
-              }
-              
-              // Initialize session persistence
-              setupSessionPersistence()
-              
-              // Apply enforcement on various events
-              ['load', 'DOMContentLoaded', 'focusin', 'touchstart'].forEach(eventType => {
-                document.addEventListener(eventType, enforceViewport, { passive: true });
+                  
+                  // Save activity on various events
+                  ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(eventType => {
+                    document.addEventListener(eventType, saveActivity, { passive: true })
+                  })
+                  
+                  // Save activity on page visibility change
+                  document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) {
+                      saveActivity()
+                    }
+                  })
+                  
+                  // Save activity on window focus
+                  window.addEventListener('focus', saveActivity)
+                  
+                  // Check session validity periodically
+                  setInterval(() => {
+                    const lastActivity = localStorage.getItem('youthhub.lastActivity')
+                    if (lastActivity) {
+                      const timeSinceActivity = Date.now() - parseInt(lastActivity)
+                      // If no activity for 30 days, clear session
+                      if (timeSinceActivity > 30 * 24 * 60 * 60 * 1000) {
+                        console.log('Session expired due to inactivity, clearing...')
+                        localStorage.removeItem('youthhub.lastActivity')
+                        localStorage.removeItem('youthhub.rememberMe')
+                      }
+                    }
+                  }, 60 * 60 * 1000) // Check every hour
+                }
+                
+                // Initialize session persistence
+                setupSessionPersistence()
+                
+                // Apply enforcement on various events
+                ['load', 'DOMContentLoaded', 'focusin', 'touchstart'].forEach(eventType => {
+                  document.addEventListener(eventType, enforceViewport, { passive: true });
+                });
+                
+                // Periodic enforcement to catch any missed elements
+                setInterval(enforceViewport, 1000);
               });
-              
-              // Periodic enforcement to catch any missed elements
-              setInterval(enforceViewport, 1000);
-            });
             `,
           }}
         />
       </head>
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} ${gothamMedium.variable} ${gothamUltra.variable} ${goldplayBlack.variable} antialiased dark prevent-zoom no-scale prevent-scale`}
+        className={`${inter.variable} ${jetbrainsMono.variable} ${gothamMedium.variable} ${gothamUltra.variable} ${goldplayBlack.variable} antialiased dark`}
       >
         <AuthProvider>
           <RealtimePollProvider>
-            {children}
+            <div className="prevent-zoom no-scale prevent-scale">
+              {children}
+            </div>
           </RealtimePollProvider>
         </AuthProvider>
       </body>
