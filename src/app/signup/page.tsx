@@ -124,7 +124,7 @@ export default function SignupPage() {
           <form onSubmit={handleSignup} className="space-y-6">
             <div className="space-y-4">
               {/* First and Last Name in same row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     First Name
