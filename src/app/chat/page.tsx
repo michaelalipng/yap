@@ -1198,9 +1198,24 @@ export default function ChatPage() {
       {/* Main Content Area - Flexbox layout for responsive design */}
       <div className="flex-1 flex flex-col min-h-0 mt-16 sm:mt-20">
         {/* Scrollable Messages Area - Takes remaining space with safe bottom margin */}
-        <div className="flex-1 overflow-hidden pb-20 sm:pb-16">
-          <ScrollArea className="h-full px-3 sm:px-4 md:px-6 py-4 touch-pan-y" ref={scrollAreaRef} type="always">
-            <div className="space-y-3 sm:space-y-4">
+        <div className="flex-1 overflow-hidden pb-20 sm:pb-16 chat-scroll-container">
+          <ScrollArea 
+            className="h-full px-3 sm:px-4 md:px-6 py-4 touch-pan-y" 
+            ref={scrollAreaRef} 
+            type="always"
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain'
+            }}
+          >
+            <div 
+              className="space-y-3 sm:space-y-4 chat-message-container"
+              style={{
+                touchAction: 'pan-y',
+                WebkitUserSelect: 'none',
+                userSelect: 'none'
+              }}
+            >
               {/* No Active Event Message */}
               {!activeEvent && (
                 <Card className="bg-yellow-50 border-yellow-200">

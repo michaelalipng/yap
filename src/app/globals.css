@@ -35,6 +35,23 @@
   touch-action: pan-y !important;
 }
 
+/* Fix touch scrolling conflicts with page scroll prevention */
+.chat-scroll-container {
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  touch-action: pan-y !important;
+  /* Prevent touch events from bubbling up to page level */
+  touch-action: pan-y pinch-zoom !important;
+}
+
+/* Ensure chat messages don't interfere with scrolling */
+.chat-message-container {
+  touch-action: pan-y !important;
+  /* Allow long press for moderation but not for scroll prevention */
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
 /* Mobile-specific scrollbar styling */
 @media (max-width: 768px) {
   [data-radix-scroll-area-viewport]::-webkit-scrollbar {
@@ -52,6 +69,26 @@
   
   [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb:hover {
     background: rgba(156, 163, 175, 0.8);
+  }
+  
+  /* Fix input field widths on mobile */
+  input[type="date"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Ensure all input fields have consistent sizing */
+  input, textarea, select {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+  }
+  
+  /* Fix grid column sizing on mobile */
+  .grid.grid-cols-2 > div {
+    min-width: 0;
+    overflow: hidden;
   }
 }
 

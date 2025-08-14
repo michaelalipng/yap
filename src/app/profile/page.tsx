@@ -305,10 +305,11 @@ export default function ProfilePage() {
                     Birthday
                   </label>
                   <input
-                    className="w-full bg-white/10 border border-gray-700 text-white placeholder-gray-400 px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm"
+                    className="w-full max-w-full bg-white/10 border border-gray-700 text-white placeholder-gray-400 px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm"
                     type="date"
                     value={form.birthday}
                     onChange={(e) => handleChange('birthday', e.target.value)}
+                    style={{ minWidth: '0', maxWidth: '100%' }}
                   />
                 </div>
                 
