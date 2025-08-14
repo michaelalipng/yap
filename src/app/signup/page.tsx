@@ -111,7 +111,7 @@ export default function SignupPage() {
       </div>
 
       {/* Main content */}
-      <div className="max-w-md mx-auto mt-28 relative z-20">
+      <div className="max-w-md mx-auto mt-20 relative z-20">
         <div className="mb-8 text-center">
           <h1 className={`${gothamUltra.className} text-4xl sm:text-5xl md:text-6xl text-white leading-tight mb-4`}>
             <br />
@@ -219,20 +219,17 @@ export default function SignupPage() {
       {/* Three rows of smiles stacked vertically at top */}
       <div className="absolute top-0 left-0 w-full pointer-events-none z-0">
         {/* Row 1 - Top */}
-        <div className="flex justify-center space-x-2">
+        <div className="flex justify-center space-x-1">
           {[...Array(15)].map((_, i) => (
-            <div key={`row1-${i}`} className="w-12 h-12">
+            <div key={`row1-${i}`} className="w-8 h-8">
               <Image
                 src="/Smile.png"
                 alt="Smile"
-                width={48}
-                height={48}
-                className="w-full h-full"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
                 style={{
                   transform: `rotate(${((i * 7) % 12) * 30}deg)`,
-                }}
-                onError={(e) => {
-                  console.error(`Failed to load smile image row1-${i}:`, e)
                 }}
               />
             </div>
@@ -240,20 +237,17 @@ export default function SignupPage() {
         </div>
         
         {/* Row 2 - Middle */}
-        <div className="flex justify-center space-x-2 mt-1">
+        <div className="flex justify-center space-x-1 mt-1">
           {[...Array(15)].map((_, i) => (
-            <div key={`row2-${i}`} className="w-12 h-12">
+            <div key={`row2-${i}`} className="w-8 h-8">
               <Image
                 src="/Smile.png"
                 alt="Smile"
-                width={48}
-                height={48}
-                className="w-full h-full"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
                 style={{
                   transform: `rotate(${((i * 11) % 12) * 30}deg)`,
-                }}
-                onError={(e) => {
-                  console.error(`Failed to load smile image row2-${i}:`, e)
                 }}
               />
             </div>
@@ -261,20 +255,17 @@ export default function SignupPage() {
         </div>
         
         {/* Row 3 - Bottom */}
-        <div className="flex justify-center space-x-2 mt-1">
+        <div className="flex justify-center space-x-1 mt-1">
           {[...Array(15)].map((_, i) => (
-            <div key={`row3-${i}`} className="w-12 h-12">
+            <div key={`row3-${i}`} className="w-8 h-8">
               <Image
                 src="/Smile.png"
                 alt="Smile"
-                width={48}
-                height={48}
-                className="w-full h-full"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
                 style={{
                   transform: `rotate(${((i * 13) % 12) * 30}deg)`,
-                }}
-                onError={(e) => {
-                  console.error(`Failed to load smile image row3-${i}:`, e)
                 }}
               />
             </div>

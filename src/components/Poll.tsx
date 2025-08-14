@@ -136,38 +136,23 @@ export default function Poll({ poll, userId, onVote }: PollProps) {
     }
   }, [poll.event_id, subscribeToPoll])
 
-  // Set up vote subscription for this specific poll
+  // Refresh results when poll changes (for real-time updates)
   useEffect(() => {
-    if (!poll.id) return
-
-    const channel = supabase
-      .channel(`poll-votes:${poll.id}`)
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'poll_votes',
-          filter: `poll_id=eq.${poll.id}`
-        },
-        async () => {
-          // Refresh results when votes change
-          try {
-            const pollResults = await getPollResults(poll.id)
-            setResults(pollResults)
-            const total = pollResults.reduce((sum: number, result: PollResult) => sum + result.vote_count, 0)
-            setTotalVotes(total)
-          } catch (error) {
-            console.error('Error refreshing poll results:', error)
-          }
+    if (poll.id && options.length > 0) {
+      const refreshResults = async () => {
+        try {
+          const pollResults = await getPollResults(poll.id)
+          setResults(pollResults)
+          const total = pollResults.reduce((sum: number, result: PollResult) => sum + result.vote_count, 0)
+          setTotalVotes(total)
+        } catch (error) {
+          console.error('Error refreshing poll results:', error)
         }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
+      }
+      
+      refreshResults()
     }
-  }, [poll.id])
+  }, [poll.id, options.length])
 
   // Check user's current vote from database
   useEffect(() => {

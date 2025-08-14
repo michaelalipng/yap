@@ -49,24 +49,11 @@ export default function PollTrigger({ eventId, onPollClick }: PollTriggerProps) 
     console.log('PollTrigger: Doing immediate poll refresh for event:', eventId)
     refreshPoll(eventId)
     
-    // Set up periodic poll check as fallback (only if no active poll)
-    let interval: NodeJS.Timeout | null = null
-    if (!activePoll) {
-      console.log('PollTrigger: Setting up periodic poll check for event:', eventId)
-      interval = setInterval(() => {
-        console.log('PollTrigger: Periodic poll check for event:', eventId)
-        refreshPoll(eventId)
-      }, 5000) // Check every 5 seconds
-    }
-    
     return () => {
       console.log('PollTrigger: Cleaning up subscription for event:', eventId)
       unsubscribe()
-      if (interval) {
-        clearInterval(interval)
-      }
     }
-  }, [eventId, subscribeToPoll, refreshPoll, activePoll])
+  }, [eventId, subscribeToPoll, refreshPoll])
 
   if (!activePoll) {
     console.log('PollTrigger: No active poll, not rendering button')

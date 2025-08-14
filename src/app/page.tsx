@@ -50,7 +50,7 @@ export default function Home() {
   if (!user) {
     return (
       <div 
-        className="font-sans grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 relative"
+        className="min-h-screen p-6 relative flex flex-col"
         style={{
           backgroundColor: '#0f0f0f'
         }}
@@ -64,37 +64,50 @@ export default function Home() {
             priority
           />
         </div>
-        <main className="flex flex-col gap-[32px] items-center justify-center w-full">
+        
+        <div className="flex-1 flex flex-col justify-center max-w-4xl mx-auto">
           <div className="mb-8">
             <h1 className={`${gothamUltra.className} text-6xl sm:text-7xl md:text-8xl text-white leading-tight relative z-20 text-center`}>
               What&apos;s up,<br />
-              {getUserName(user)}!
+              friend!
             </h1>
           </div>
           
-          <div className="relative mx-auto w-full flex justify-center">
-            <Link href="/chat" className="relative block">
+          <div className="relative mb-8 mx-auto w-full flex justify-center">
+            <Link href="/login" className="relative block">
               <div 
-                className="z-0 hover:opacity-90 transition-opacity cursor-pointer"
+                className="w-[400px] h-[216px] z-50 hover:opacity-90 transition-opacity cursor-pointer"
                 style={{
-                  width: '520px',
-                  height: '281px',
                   WebkitMask: 'url(/RightBub.svg) no-repeat center',
                   mask: 'url(/RightBub.svg) no-repeat center',
                   backgroundColor: '#FEDC01',
-                  WebkitMaskSize: '520px 281px',
-                  maskSize: '520px 281px',
-                  WebkitMaskRepeat: 'no-repeat',
-                  maskRepeat: 'no-repeat'
+                  WebkitMaskSize: 'contain',
+                  maskSize: 'contain'
                 }}
               />
-              <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-10 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
-                Join the chat!
+              <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-50 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
+                Get started!
               </h2>
             </Link>
           </div>
-        </main>
-        
+          
+          {/* Additional call-to-action buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
+            <Link 
+              href="/login"
+              className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-semibold px-8 py-4 rounded-xl hover:from-yellow-300 hover:to-yellow-400 transform hover:scale-105 transition-all duration-200 shadow-lg"
+            >
+              Sign In
+            </Link>
+            <Link 
+              href="/signup"
+              className="bg-black/20 backdrop-blur-sm border border-gray-800 text-white font-semibold px-8 py-4 rounded-xl hover:bg-black/30 hover:border-gray-700 transform hover:scale-105 transition-all duration-200 shadow-lg"
+            >
+              Create Account
+            </Link>
+          </div>
+        </div>
+
         {/* Smile SVG Pile */}
         <div 
           className="fixed bottom-0 left-0 w-full h-64 cursor-pointer z-10 select-none" 

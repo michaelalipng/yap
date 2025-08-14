@@ -79,26 +79,6 @@ export default function ChatPage() {
   const { activePolls } = useRealtimePolls()
   const activePoll = activeEvent ? activePolls[activeEvent.id] : null
 
-  // Check for active poll on page load and monitor changes
-  useEffect(() => {
-    if (activeEvent && profile) {
-      // The RealtimePollProvider will automatically check for active polls
-      // and update the activePolls state via real-time subscriptions
-      console.log('Chat page: Checking for active polls on event:', activeEvent.id)
-      console.log('Chat page: Current activePolls state:', activePolls)
-      console.log('Chat page: Active poll for this event:', activePolls[activeEvent.id])
-      
-      // Debug: Log the structure of activePolls
-      console.log('Chat page: activePolls keys:', Object.keys(activePolls))
-      console.log('Chat page: activePolls values:', Object.values(activePolls))
-      
-      // Log poll state changes
-      console.log('Chat page: Poll state changed for event:', activeEvent.id)
-      console.log('Chat page: New poll state:', activePolls[activeEvent.id])
-      console.log('Chat page: All active polls:', activePolls)
-    }
-  }, [activeEvent, profile, activePolls])
-
   // Upvote-related state
   const [messageUpvotes, setMessageUpvotes] = useState<{ [key: string]: number }>({})
   const [userUpvotes, setUserUpvotes] = useState<{ [key: string]: boolean }>({})
@@ -144,12 +124,6 @@ export default function ChatPage() {
   // Check if user has moderation privileges
   const isMod = profile?.role === 'mod' || profile?.role === 'speaker'
 
-  // Function to fetch and update polls (now handled by real-time context)
-  const fetchPolls = useCallback(async () => {
-    // Polls are now automatically updated via real-time subscriptions
-    console.log('Polls are automatically updated via real-time subscriptions')
-  }, [])
-
   // Auto-scroll to bottom function
   const scrollToBottom = useCallback(() => {
     if (messagesEndRef.current) {
@@ -192,7 +166,7 @@ export default function ChatPage() {
       } = await supabase.auth.getUser()
 
       if (!user || error) {
-        router.push('/signup')
+        router.push('/login')
         return
       }
 
@@ -203,7 +177,7 @@ export default function ChatPage() {
         .single()
 
       if (!profileData) {
-        router.push('/signup')
+        router.push('/login')
         return
       }
 
@@ -232,7 +206,7 @@ export default function ChatPage() {
 
       // Fetch active poll for the current event and check user vote
       if (activeEventData && profileData) {
-        await fetchPolls()
+        // fetchPolls() // Polls are now automatically updated via real-time subscriptions
       }
 
       const { data: initialMessages } = await supabase
@@ -535,7 +509,7 @@ export default function ChatPage() {
   // Fetch polls when there's an active event
   useEffect(() => {
     if (activeEvent && profile) {
-      fetchPolls()
+      // fetchPolls() // Polls are now automatically updated via real-time subscriptions
     }
   }, [activeEvent, profile])
 
@@ -1128,7 +1102,7 @@ export default function ChatPage() {
           alt="YAP Logo"
           width={60}
           height={60}
-          className="sm:w-20 sm:h-20"
+          className="sm:w-20 sm:h-20 object-contain"
           priority
         />
       </div>
@@ -1508,7 +1482,7 @@ export default function ChatPage() {
                 hasActivePoll={!!activePoll}
                 onPollCreated={() => {
                   setShowPollCreationModal(false)
-                  fetchPolls()
+                  // fetchPolls() // Polls are now automatically updated via real-time subscriptions
                 }}
                 onEndPoll={async () => {
                   try {

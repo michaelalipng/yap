@@ -57,7 +57,7 @@ export default function LoginPage() {
       </div>
 
       {/* Main content */}
-      <div className="max-w-md mx-auto mt-32 relative z-20">
+      <div className="max-w-md mx-auto mt-20 relative z-20">
         <div className="mb-8 text-center">
           <h1 className={`${gothamUltra.className} text-4xl sm:text-5xl md:text-6xl text-white leading-tight mb-4`}>
             <br />
@@ -137,43 +137,18 @@ export default function LoginPage() {
 
       {/* Three rows of smiles stacked vertically at top */}
       <div className="absolute top-0 left-0 w-full pointer-events-none z-0">
-        {/* Debug info - remove this after testing */}
-        <div className="text-white text-xs text-center mb-2">
-          Loading {45} smile images...
-        </div>
-        
-        {/* Test image to verify image loading works */}
-        <div className="text-center mb-4">
-          <Image
-            src="/LogoHalfFix.png"
-            alt="Test Logo"
-            width={60}
-            height={60}
-            className="mx-auto"
-            onLoad={() => console.log('Logo loaded successfully')}
-            onError={(e) => console.error('Logo failed to load:', e)}
-          />
-          <p className="text-white text-xs mt-1">Test Logo (should load)</p>
-        </div>
-        
         {/* Row 1 - Top */}
-        <div className="flex justify-center space-x-2">
+        <div className="flex justify-center space-x-1">
           {[...Array(15)].map((_, i) => (
-            <div key={`row1-${i}`} className="w-12 h-12">
+            <div key={`row1-${i}`} className="w-8 h-8">
               <Image
                 src="/Smile.png"
                 alt="Smile"
-                width={48}
-                height={48}
-                className="w-full h-full"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
                 style={{
                   transform: `rotate(${((i * 7) % 12) * 30}deg)`,
-                }}
-                onError={(e) => {
-                  console.error(`Failed to load smile image row1-${i}:`, e)
-                }}
-                onLoad={() => {
-                  console.log(`Successfully loaded smile image row1-${i}`)
                 }}
               />
             </div>
@@ -181,23 +156,17 @@ export default function LoginPage() {
         </div>
         
         {/* Row 2 - Middle */}
-        <div className="flex justify-center space-x-2 mt-1">
+        <div className="flex justify-center space-x-1 mt-1">
           {[...Array(15)].map((_, i) => (
-            <div key={`row2-${i}`} className="w-12 h-12">
+            <div key={`row2-${i}`} className="w-8 h-8">
               <Image
                 src="/Smile.png"
                 alt="Smile"
-                width={48}
-                height={48}
-                className="w-full h-full"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
                 style={{
                   transform: `rotate(${((i * 11) % 12) * 30}deg)`,
-                }}
-                onError={(e) => {
-                  console.error(`Failed to load smile image row2-${i}:`, e)
-                }}
-                onLoad={() => {
-                  console.log(`Successfully loaded smile image row2-${i}`)
                 }}
               />
             </div>
@@ -205,23 +174,17 @@ export default function LoginPage() {
         </div>
         
         {/* Row 3 - Bottom */}
-        <div className="flex justify-center space-x-2 mt-1">
+        <div className="flex justify-center space-x-1 mt-1">
           {[...Array(15)].map((_, i) => (
-            <div key={`row3-${i}`} className="w-12 h-12">
+            <div key={`row3-${i}`} className="w-8 h-8">
               <Image
                 src="/Smile.png"
                 alt="Smile"
-                width={48}
-                height={48}
-                className="w-full h-full"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
                 style={{
                   transform: `rotate(${((i * 13) % 12) * 30}deg)`,
-                }}
-                onError={(e) => {
-                  console.error(`Failed to load smile image row3-${i}:`, e)
-                }}
-                onLoad={() => {
-                  console.log(`Successfully loaded smile image row3-${i}`)
                 }}
               />
             </div>
