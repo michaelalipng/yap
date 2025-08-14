@@ -10,7 +10,6 @@ import { useRealtimePolls } from '@/components/RealtimePollProvider'
 import ChatBanner from '@/components/ChatBanner'
 import Message from '@/components/Message'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
@@ -1199,13 +1198,15 @@ export default function ChatPage() {
       <div className="flex-1 flex flex-col min-h-0 mt-16 sm:mt-20">
         {/* Scrollable Messages Area - Takes remaining space with safe bottom margin */}
         <div className="flex-1 overflow-hidden pb-20 sm:pb-16 chat-scroll-container">
-          <ScrollArea 
-            className="h-full px-3 sm:px-4 md:px-6 py-4 touch-pan-y" 
-            ref={scrollAreaRef} 
-            type="always"
+          <div 
+            className="h-full px-3 sm:px-4 md:px-6 py-4 overflow-y-auto native-scroll-container"
+            ref={scrollAreaRef}
             style={{
               WebkitOverflowScrolling: 'touch',
-              overscrollBehavior: 'contain'
+              overscrollBehavior: 'contain',
+              touchAction: 'pan-y',
+              scrollbarWidth: 'thin',
+              msOverflowStyle: 'none'
             }}
           >
             <div 
@@ -1294,7 +1295,7 @@ export default function ChatPage() {
               
               <div ref={messagesEndRef} />
             </div>
-          </ScrollArea>
+          </div>
         </div>
       </div>
 

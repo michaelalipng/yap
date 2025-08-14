@@ -52,6 +52,39 @@
   user-select: none !important;
 }
 
+/* Native scrollable chat container - critical for mobile touch scrolling */
+.chat-scroll-container > div[style*="overflow-y: auto"] {
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  touch-action: pan-y !important;
+  /* Force touch scrolling to work */
+  scroll-behavior: smooth !important;
+}
+
+/* Direct targeting for the native scroll container */
+.native-scroll-container {
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  touch-action: pan-y !important;
+  scroll-behavior: smooth !important;
+  /* Critical for mobile touch scrolling */
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Hide scrollbar on mobile but keep functionality */
+@media (max-width: 768px) {
+  .chat-scroll-container > div[style*="overflow-y: auto"]::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
+  
+  .chat-scroll-container > div[style*="overflow-y: auto"] {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+}
+
 /* Mobile-specific scrollbar styling */
 @media (max-width: 768px) {
   [data-radix-scroll-area-viewport]::-webkit-scrollbar {
