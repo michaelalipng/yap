@@ -15,9 +15,10 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Disable scrolling when component mounts
+  // Allow scrolling on the signup page - we want to see all content
   useEffect(() => {
-    document.body.style.overflow = 'hidden'
+    // Allow scrolling so users can see the entire signup card
+    document.body.style.overflow = 'auto'
     
     // Re-enable scrolling when component unmounts
     return () => {
@@ -94,7 +95,7 @@ export default function SignupPage() {
   
   return (
     <div 
-      className="min-h-screen p-6 relative no-pull-refresh mobile-app-container"
+      className="signup-page-container min-h-screen p-6 relative no-pull-refresh mobile-app-container"
       style={{
         backgroundColor: '#0f0f0f'
       }}
@@ -110,8 +111,8 @@ export default function SignupPage() {
         />
       </div>
 
-      {/* Main content */}
-      <div className="max-w-md mx-auto mt-20 relative z-20">
+      {/* Main content - ensure it's always visible */}
+      <div className="signup-form-container max-w-md mx-auto mt-20 relative z-20 pb-8">
         <div className="mb-8 text-center">
           <h1 className={`${gothamUltra.className} text-4xl sm:text-5xl md:text-6xl text-white leading-tight mb-4`}>
             <br />

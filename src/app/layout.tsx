@@ -85,25 +85,26 @@ export default function RootLayout({
                 
                 document.addEventListener('touchstart', function(e) {
                   startY = e.touches[0].clientY;
-                }, { passive: false });
+                }, { passive: true });
                 
                 document.addEventListener('touchmove', function(e) {
                   currentY = e.touches[0].clientY;
                   
-                  // Prevent pull-to-refresh when scrolling up at the top
+                  // Only prevent pull-to-refresh, allow normal scrolling
                   if (window.scrollY === 0 && currentY > startY) {
-                    e.preventDefault();
-                  }
-                  
-                  // Prevent pull-to-refresh when scrolling down at the bottom
-                  if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight && currentY < startY) {
-                    e.preventDefault();
+                    // Check if we're in a scrollable container
+                    const target = e.target;
+                    const scrollableParent = target.closest('.chat-scroll-container, .native-scroll-container');
+                    
+                    if (!scrollableParent) {
+                      e.preventDefault();
+                    }
                   }
                 }, { passive: false });
                 
-                // Prevent overscroll behavior
-                document.body.style.overscrollBehavior = 'none';
-                document.documentElement.style.overscrollBehavior = 'none';
+                // Allow overscroll behavior for chat containers
+                document.body.style.overscrollBehavior = 'contain';
+                document.documentElement.style.overscrollBehavior = 'contain';
                 
                 // Mobile browser UI hiding
                 function hideMobileBrowserUI() {

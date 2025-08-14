@@ -13,10 +13,11 @@ import LoadingSpinner from '@/components/LoadingSpinner'
 import HamburgerMenu from '@/components/HamburgerMenu'
 
 export default function ProfilePage() {
-  // Prevent any scrolling on the page
+  // Remove the scroll prevention - we want the page to be scrollable
   useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    document.documentElement.style.overflow = 'hidden'
+    // Allow scrolling on the profile page
+    document.body.style.overflow = 'auto'
+    document.documentElement.style.overflow = 'auto'
     
     return () => {
       document.body.style.overflow = 'unset'
@@ -220,7 +221,7 @@ export default function ProfilePage() {
 
   return (
     <div 
-      className="h-screen w-screen flex flex-col overflow-hidden"
+      className="profile-page-container min-h-screen w-full flex flex-col bg-black"
       style={{
         backgroundColor: '#0f0f0f'
       }}
@@ -243,8 +244,8 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Main content - no scrolling, always fits content */}
-      <div className="flex-1 flex items-center justify-center p-6 pt-16">
+      {/* Main content - scrollable, always shows everything */}
+      <div className="profile-form-container flex-1 flex flex-col items-center p-6 pt-24 pb-8">
         <div className="w-full max-w-md">
           {/* Title */}
           <div className="text-center mb-4">

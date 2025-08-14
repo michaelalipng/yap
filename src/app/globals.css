@@ -70,6 +70,31 @@
   /* Critical for mobile touch scrolling */
   -webkit-user-select: none !important;
   user-select: none !important;
+  /* Ensure scrolling container works */
+  position: relative !important;
+  overflow-y: auto !important;
+  height: 100% !important;
+}
+
+/* Force chat scrolling to work on mobile */
+@media (max-width: 768px) {
+  .chat-scroll-container {
+    overflow: visible !important;
+    position: relative !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  
+  .native-scroll-container {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    position: relative !important;
+    height: 100% !important;
+    /* Remove any conflicting styles */
+    transform: none !important;
+    -webkit-transform: none !important;
+  }
 }
 
 /* Hide scrollbar on mobile but keep functionality */
@@ -176,7 +201,7 @@ html, body {
     -ms-overflow-style: none;
     scrollbar-width: none;
     
-    /* Prevent address bar from showing */
+    /* Allow scrolling within containers but keep page fixed */
     overflow: hidden;
     position: fixed;
     width: 100%;
@@ -217,17 +242,21 @@ html, body {
     transform: translateZ(0);
   }
   
-  /* Hide mobile browser UI elements */
-  .mobile-app-container::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: transparent;
-    z-index: -1;
-    pointer-events: none;
+  /* CRITICAL: Allow chat container to scroll on mobile */
+  .chat-scroll-container {
+    overflow: visible !important;
+    position: relative !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+  }
+  
+  .chat-scroll-container > div {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    /* Ensure scrolling works */
+    position: relative !important;
+    height: 100% !important;
   }
 }
 
@@ -977,4 +1006,90 @@ html, body {
   will-change: auto;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
+}
+
+/* Profile page specific fixes for mobile visibility */
+.profile-page-container {
+  min-height: 100vh !important;
+  min-height: -webkit-fill-available !important;
+  min-height: fill-available !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  /* Ensure content is never cut off */
+  padding-bottom: 2rem !important;
+}
+
+/* Force profile form to be fully visible */
+.profile-form-container {
+  overflow: visible !important;
+  position: relative !important;
+  min-height: auto !important;
+  /* Ensure save button is always visible */
+  padding-bottom: 4rem !important;
+}
+
+/* Mobile-specific profile page fixes */
+@media (max-width: 768px) {
+  .profile-page-container {
+    /* Allow scrolling on mobile */
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    /* Prevent content from being hidden behind address bar */
+    padding-top: 6rem !important;
+    padding-bottom: 3rem !important;
+  }
+  
+  .profile-form-container {
+    /* Ensure form content is fully visible */
+    overflow: visible !important;
+    position: relative !important;
+    /* Force save button to be visible */
+    margin-bottom: 2rem !important;
+  }
+}
+
+/* Signup page specific fixes for mobile visibility */
+.signup-page-container {
+  min-height: 100vh !important;
+  min-height: -webkit-fill-available !important;
+  min-height: fill-available !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  /* Ensure content is never cut off */
+  padding-bottom: 2rem !important;
+}
+
+/* Force signup form to be fully visible */
+.signup-form-container {
+  overflow: visible !important;
+  position: relative !important;
+  min-height: auto !important;
+  /* Ensure the entire card is visible */
+  padding-bottom: 2rem !important;
+}
+
+/* Mobile-specific signup page fixes */
+@media (max-width: 768px) {
+  .signup-page-container {
+    /* Allow scrolling on mobile */
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    /* Prevent content from being hidden behind address bar */
+    padding-top: 1rem !important;
+    padding-bottom: 3rem !important;
+  }
+  
+  .signup-form-container {
+    /* Ensure form content is fully visible */
+    overflow: visible !important;
+    position: relative !important;
+    /* Force bottom content to be visible */
+    margin-bottom: 2rem !important;
+    /* Extra padding to ensure login link is visible */
+    padding-bottom: 3rem !important;
+  }
 }
