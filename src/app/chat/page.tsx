@@ -344,7 +344,7 @@ export default function ChatPage() {
       console.log('Chat: Cleaning up emoji channel subscription')
       cleanup?.()
     }
-  }, [activeEvent?.id, animateEmoji])
+  }, [activeEvent?.id])
 
   // Real-time subscription for flags
   useEffect(() => {
@@ -474,7 +474,7 @@ export default function ChatPage() {
       
       return () => clearTimeout(timer)
     }
-  }, [messages.length, loading, scrollToBottom])
+  }, [messages.length, loading])
 
   // Force scroll to bottom on initial load
   useEffect(() => {
@@ -482,7 +482,7 @@ export default function ChatPage() {
       // Immediate scroll for initial load
       scrollToBottom()
     }
-  }, [loading, scrollToBottom]) // Only trigger on loading state change
+  }, [loading]) // Only trigger on loading state change
 
   // Subscribe to message changes for the current active event
   useEffect(() => {
@@ -541,7 +541,7 @@ export default function ChatPage() {
     if (activeEvent && profile) {
       fetchPolls()
     }
-  }, [activeEvent, profile, fetchPolls])
+  }, [activeEvent, profile])
 
   // Poll state debugging removed - now handled by PollTrigger component
 
@@ -560,7 +560,7 @@ export default function ChatPage() {
         lastMessageId.current = currentLastMessageId
       }
     }
-  }, [messages, scrollToBottom])
+  }, [messages])
 
   // Handle clicking outside emoji bar and poll callout to close them
   useEffect(() => {
@@ -772,7 +772,7 @@ export default function ChatPage() {
     if (profile && Object.keys(profileMap).length === 0) {
       refreshProfiles()
     }
-  }, [profile, refreshProfiles])
+  }, [profile])
 
   // Calculate event countdown
   const calculateEventCountdown = useCallback(() => {
@@ -826,7 +826,7 @@ export default function ChatPage() {
     const interval = setInterval(calculateEventCountdown, 60000)
 
     return () => clearInterval(interval)
-  }, [activeEvent, calculateEventCountdown])
+  }, [activeEvent])
 
   // Load upvote data for all messages
   const loadUpvotes = useCallback(async () => {
@@ -1021,7 +1021,7 @@ export default function ChatPage() {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isMod, messages, handleModeration])
+  }, [isMod, messages])
 
   // Handle banner creation
   const handleCreateBanner = async (title: string, link: string, bannerType: string, durationMinutes: number, messageText?: string) => {
