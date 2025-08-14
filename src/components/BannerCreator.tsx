@@ -61,7 +61,7 @@ export default function BannerCreator() {
         <input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="w-full mt-1 p-2 border rounded"
+          className="w-full mt-1 p-2 border rounded prevent-zoom"
           placeholder="e.g. Sign up for Baptism!"
         />
       </div>
@@ -71,7 +71,7 @@ export default function BannerCreator() {
         <select
           value={linkType}
           onChange={(e) => setLinkType(e.target.value as 'form' | 'external' | 'share')}
-          className="w-full mt-1 p-2 border rounded"
+          className="w-full mt-1 p-2 border rounded prevent-zoom"
         >
           <option value="form">Form (autofill user info)</option>
           <option value="external">External Link</option>
@@ -86,7 +86,7 @@ export default function BannerCreator() {
         <input
           value={linkUrl}
           onChange={(e) => setLinkUrl(e.target.value)}
-          className="w-full mt-1 p-2 border rounded"
+          className="w-full mt-1 p-2 border rounded prevent-zoom"
           placeholder="https://..."
         />
       </div>
@@ -97,8 +97,8 @@ export default function BannerCreator() {
           <textarea
             value={shareMessage}
             onChange={(e) => setShareMessage(e.target.value)}
-            className="w-full mt-1 p-2 border rounded"
-            placeholder="Here's the link to sign up for camp. It’s $250 and the deadline is May 21st."
+            className="w-full mt-1 p-2 border rounded prevent-zoom"
+            placeholder="Here's the link to sign up for camp. It's $250 and the deadline is May 21st."
           />
         </div>
       )}
@@ -110,7 +110,7 @@ export default function BannerCreator() {
           min={1}
           value={durationMinutes}
           onChange={(e) => setDurationMinutes(Number(e.target.value))}
-          className="w-full mt-1 p-2 border rounded"
+          className="w-full mt-1 p-2 border rounded prevent-zoom"
         />
       </div>
 

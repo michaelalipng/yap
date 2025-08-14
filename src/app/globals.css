@@ -266,17 +266,6 @@ button, a, [role="button"], [tabindex], label {
 }
 
 /* Ultimate zoom prevention - applies to entire app */
-html, body {
-  -webkit-text-size-adjust: 100% !important;
-  -moz-text-size-adjust: 100% !important;
-  -ms-text-size-adjust: 100% !important;
-  text-size-adjust: 100% !important;
-  transform: scale(1) !important;
-  -webkit-transform: scale(1) !important;
-  -moz-transform: scale(1) !important;
-  -ms-transform: scale(1) !important;
-}
-
 html.prevent-zoom, body.prevent-zoom {
   -webkit-text-size-adjust: 100% !important;
   -moz-text-size-adjust: 100% !important;
@@ -1348,4 +1337,36 @@ html, body {
     /* Extra padding to ensure login link is visible */
     padding-bottom: 3rem !important;
   }
+}
+
+/* Zoom Prevention CSS - Added carefully to preserve existing styles */
+/* Only apply zoom prevention to elements that explicitly need it */
+.prevent-zoom {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
+/* Ensure all inputs have proper font size for mobile (prevents zoom without forcing positioning) */
+input, textarea, select {
+  font-size: 16px !important;
+}
+
+/* Optimize emoji buttons for rapid clicking */
+.emoji-button {
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Ensure emoji buttons are responsive */
+.emoji-button:active {
+  transform: scale(0.95) !important;
+  -webkit-transform: scale(0.95) !important;
+  transition: transform 0.05s ease-out !important;
 }

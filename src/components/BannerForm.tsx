@@ -78,7 +78,7 @@ export default function BannerForm({ onSubmit, onCancel }: BannerFormProps) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Enter banner title..."
-          className="border-gray-600 bg-gray-800 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+          className="border-gray-600 bg-gray-800 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 prevent-zoom"
           required
         />
       </div>
@@ -144,7 +144,7 @@ export default function BannerForm({ onSubmit, onCancel }: BannerFormProps) {
             onChange={(e) => setLink(e.target.value)}
             placeholder={getLinkPlaceholder()}
             type="text"
-            className="border-gray-600 bg-gray-800 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+            className="border-gray-600 bg-gray-800 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 prevent-zoom"
             required={bannerType === 'form'}
           />
           <p className="text-xs text-gray-400 mt-1">
@@ -165,7 +165,7 @@ export default function BannerForm({ onSubmit, onCancel }: BannerFormProps) {
             onChange={(e) => setMessageText(e.target.value)}
             placeholder="Enter the message to send..."
             rows={3}
-            className="border-gray-600 bg-gray-800 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 resize-none"
+            className="border-gray-600 bg-gray-800 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 resize-none prevent-zoom"
             required
           />
         </div>
