@@ -192,16 +192,9 @@ export default function PublicPollsPage() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'events' },
-        () => {
+        (payload) => {
+          console.log('Event change detected:', payload)
           // Reload when events change
-          loadActiveContent()
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'polls' },
-        () => {
-          // Reload when polls change
           loadActiveContent()
         }
       )
@@ -210,7 +203,75 @@ export default function PublicPollsPage() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [loadActiveContent])
+  }, [])
+
+  // Subscribe to poll changes for the active event
+  useEffect(() => {
+    if (!activeEvent) return
+
+    console.log('Setting up poll subscription for event:', activeEvent.id)
+    
+    const channel = supabase
+      .channel(`polls-${activeEvent.id}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'polls',
+          filter: `event_id=eq.${activeEvent.id}`
+        },
+        (payload) => {
+          console.log('Poll change detected for event:', activeEvent.id, payload)
+          // Reset voting states for new polls
+          setHasVoted(false)
+          setUserVote(null)
+          setPollEnded(false)
+          // Reload content to get the new/updated poll
+          setTimeout(() => {
+            loadActiveContent()
+          }, 500) // Small delay to ensure DB is consistent
+        }
+      )
+      .subscribe()
+
+    return () => {
+      console.log('Cleaning up poll subscription for event:', activeEvent.id)
+      supabase.removeChannel(channel)
+    }
+  }, [activeEvent, loadActiveContent])
+
+  // Subscribe to poll options changes
+  useEffect(() => {
+    if (!activePoll) return
+
+    console.log('Setting up poll options subscription for poll:', activePoll.id)
+    
+    const channel = supabase
+      .channel(`poll-options-${activePoll.id}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'poll_options',
+          filter: `poll_id=eq.${activePoll.id}`
+        },
+        (payload) => {
+          console.log('Poll options change detected for poll:', activePoll.id, payload)
+          // Reload content to get updated options
+          setTimeout(() => {
+            loadActiveContent()
+          }, 200)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      console.log('Cleaning up poll options subscription for poll:', activePoll.id)
+      supabase.removeChannel(channel)
+    }
+  }, [activePoll, loadActiveContent])
 
   const getTotalVotes = () => {
     return pollResults.reduce((sum, result) => sum + result.vote_count, 0)

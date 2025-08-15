@@ -160,7 +160,20 @@ export default function PollModerationPage() {
   }
 
   const handleStartNext = async () => {
-    if (!activeEvent || queuedPolls.length === 0) return
+    console.log('Start Next button clicked', { 
+      activeEvent: activeEvent?.id, 
+      queuedPolls: queuedPolls.length 
+    })
+    
+    if (!activeEvent) {
+      console.error('No active event - cannot start next poll')
+      return
+    }
+    
+    if (queuedPolls.length === 0) {
+      console.error('No queued polls - cannot start next poll')
+      return
+    }
 
     try {
       console.log('Starting next poll...')
@@ -227,6 +240,7 @@ export default function PollModerationPage() {
   useEffect(() => {
     const init = async () => {
       try {
+        console.log('Initializing poll-mod page...')
         const { data: events } = await supabase
           .from('events')
           .select('*')
@@ -234,10 +248,15 @@ export default function PollModerationPage() {
           .order('created_at', { ascending: false })
           .limit(1)
 
+        console.log('Found events:', events)
+
         if (events && events.length > 0) {
           const event = events[0]
+          console.log('Setting active event:', event.id)
           setActiveEvent(event)
           await fetchPolls(event.id)
+        } else {
+          console.log('No active events found')
         }
 
         setLoading(false)
@@ -316,7 +335,10 @@ export default function PollModerationPage() {
             {/* Quick Actions */}
             <div className="flex gap-3">
               <Button
-                onClick={() => setShowCreateForm(!showCreateForm)}
+                onClick={() => {
+                  console.log('New Poll button clicked', { activeEvent: activeEvent?.id })
+                  setShowCreateForm(!showCreateForm)
+                }}
                 className="bg-blue-600 hover:bg-blue-500 border-0 shadow-lg hover:shadow-blue-500/25 transition-all duration-200"
               >
                 <Plus className="h-4 w-4 mr-2" />
