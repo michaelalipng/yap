@@ -45,21 +45,27 @@ export default function PollModerationPage() {
 
   const fetchPolls = useCallback(async (eventId: string) => {
     try {
+      console.log('fetchPolls called for event:', eventId)
       const poll = await getActivePoll(eventId)
+      console.log('Active poll found:', poll)
       setActivePoll(poll)
       
       if (poll) {
         const options = await getPollOptions(poll.id)
+        console.log('Poll options:', options)
         setPollOptions(options)
         
         const results = await getPollResultsWithOptions(poll.id, options)
+        console.log('Poll results:', results)
         setPollResults(results)
       } else {
+        console.log('No active poll, clearing options and results')
         setPollOptions([])
         setPollResults([])
       }
 
       const queued = await getQueuedPolls(eventId)
+      console.log('Queued polls:', queued)
       setQueuedPolls(queued)
     } catch (error) {
       console.error('Error fetching polls:', error)

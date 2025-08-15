@@ -33,6 +33,12 @@ export default function PublicPollsPage() {
   const [loading, setLoading] = useState(true)
   const [voting, setVoting] = useState(false)
   const [pollEnded, setPollEnded] = useState(false)
+  
+  // Store ended poll data to show results until new poll starts
+  const [endedPoll, setEndedPoll] = useState<Poll | null>(null)
+  const [endedPollOptions, setEndedPollOptions] = useState<PollOption[]>([])
+  const [endedPollResults, setEndedPollResults] = useState<PollResult[]>([])
+  
   const [sessionId] = useState(() => {
     // Generate a unique session ID for anonymous voting
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -40,20 +46,30 @@ export default function PublicPollsPage() {
 
   // Handle poll expiry
   const handlePollExpiry = useCallback(async () => {
-    if (activeEvent) {
+    if (activeEvent && activePoll) {
+      // Store current poll data before it becomes inactive
+      setEndedPoll(activePoll)
+      setEndedPollOptions(pollOptions)
+      setEndedPollResults(pollResults)
+      
       await checkPollExpiry(activeEvent.id)
       setPollEnded(true)
+      
       // Refresh the poll data after expiry
       setTimeout(() => {
         loadActiveContent()
       }, 2000) // Give a bit more time for transitions
     }
-  }, [activeEvent])
+  }, [activeEvent, activePoll, pollOptions, pollResults])
 
   // Handle poll transitions
   const handlePollTransition = useCallback(() => {
     console.log('Poll transition detected, refreshing data...')
     if (activeEvent) {
+      // Clear ended poll data when new poll starts
+      setEndedPoll(null)
+      setEndedPollOptions([])
+      setEndedPollResults([])
       // Reset poll ended state for new polls
       setPollEnded(false)
       // Refresh poll data
@@ -378,17 +394,107 @@ export default function PublicPollsPage() {
             </CardContent>
           </Card>
         ) : !activePoll ? (
-          <Card className="bg-white border-0 rounded-2xl shadow-md">
-            <CardContent className="p-8 text-center">
-              <BarChart3 className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-              <h2 className={`${gothamMedium.className} text-xl text-gray-900 mb-2`}>
-                No Active Poll
-              </h2>
-              <p className="text-gray-600">
-                No polls are currently active for this event. Stay tuned!
-              </p>
-            </CardContent>
-          </Card>
+          // Show ended poll results if available, otherwise show "no active poll" message
+          endedPoll ? (
+            <Card className="bg-white border-0 rounded-2xl shadow-md">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <CardTitle className={`${gothamMedium.className} text-gray-900 text-xl`}>
+                    {endedPoll.question}
+                  </CardTitle>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
+                      <Users className="h-4 w-4" />
+                      {endedPollResults.reduce((sum, result) => sum + result.vote_count, 0)} votes
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Show poll ended status with correct answer */}
+                {endedPoll.correct_option_id && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                    <div className="flex items-center gap-2 text-green-800">
+                      <CheckCircle className="h-5 w-5" />
+                      <span className={`${gothamMedium.className} font-semibold`}>
+                        Poll Ended - Correct Answer: {
+                          endedPollOptions.find(opt => opt.id === endedPoll.correct_option_id)?.label || 'Unknown'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                {/* Poll results for ended poll */}
+                {endedPollOptions.map((option) => {
+                  const result = endedPollResults.find(r => r.option_id === option.id)
+                  const voteCount = result?.vote_count || 0
+                  const percentage = result?.percentage || 0
+                  const isCorrectAnswer = endedPoll.correct_option_id === option.id
+                  
+                  return (
+                    <div 
+                      key={option.id} 
+                      className={`p-4 rounded-xl border transition-all ${
+                        isCorrectAnswer 
+                          ? 'bg-green-50 border-green-300 ring-2 ring-green-200' 
+                          : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <span className={`${gothamMedium.className} text-gray-900`}>
+                            {option.label}
+                          </span>
+                          {isCorrectAnswer && (
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <span className={`${gothamMedium.className} text-lg font-bold text-gray-900`}>
+                            {voteCount}
+                          </span>
+                          <span className="text-gray-500 text-sm ml-2">
+                            ({percentage}%)
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="relative">
+                        <Progress 
+                          value={percentage} 
+                          className={`h-2 ${
+                            isCorrectAnswer 
+                              ? 'bg-green-100' 
+                              : 'bg-gray-200'
+                          }`}
+                        />
+                        {isCorrectAnswer && (
+                          <div 
+                            className="absolute top-0 left-0 h-2 bg-green-500 rounded-full transition-all duration-1000"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-white border-0 rounded-2xl shadow-md">
+              <CardContent className="p-8 text-center">
+                <BarChart3 className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+                <h2 className={`${gothamMedium.className} text-xl text-gray-900 mb-2`}>
+                  No Active Poll
+                </h2>
+                <p className="text-gray-600">
+                  No polls are currently active for this event. Stay tuned!
+                </p>
+              </CardContent>
+            </Card>
+          )
         ) : (
           <Card className="bg-white border-0 rounded-2xl shadow-md">
             <CardHeader className="pb-4">
