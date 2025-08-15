@@ -70,6 +70,148 @@ export default function PollModerationPage() {
     return pollResults.reduce((sum, result) => sum + result.vote_count, 0)
   }, [pollResults])
 
+  const handleCreatePoll = async () => {
+    console.log('handleCreatePoll called', { 
+      activeEvent: activeEvent?.id, 
+      question: newPollQuestion, 
+      options: newPollOptions 
+    })
+    
+    if (!activeEvent) {
+      console.error('No active event found')
+      return
+    }
+    
+    if (!newPollQuestion.trim()) {
+      console.error('Poll question is empty')
+      return
+    }
+
+    try {
+      setIsCreating(true)
+      console.log('Creating poll...')
+      
+      const pollType = newPollOptions.length === 2 && 
+                      newPollOptions[0] === 'Yes' && 
+                      newPollOptions[1] === 'No' ? 'yes_no' : 'multi'
+      
+      console.log('Poll data:', {
+        question: newPollQuestion,
+        type: pollType,
+        options: newPollOptions,
+        correctIndex: correctOptionIndex,
+        duration: durationMinutes * 60,
+        eventId: activeEvent.id,
+        autoStart
+      })
+      
+      const pollId = await createTimedPoll(
+        newPollQuestion,
+        pollType,
+        newPollOptions,
+        correctOptionIndex,
+        durationMinutes * 60, // Convert to seconds
+        activeEvent.id,
+        autoStart
+      )
+
+      console.log('Poll created with ID:', pollId)
+
+      if (pollId) {
+        // Reset form
+        setNewPollQuestion('')
+        setNewPollOptions(['Yes', 'No'])
+        setCorrectOptionIndex(0)
+        setDurationMinutes(2)
+        setAutoStart(false)
+        setShowCreateForm(false)
+
+        // Refresh polls
+        await fetchPolls(activeEvent.id)
+        console.log('Poll creation completed successfully')
+      } else {
+        console.error('Poll creation failed - no ID returned')
+      }
+    } catch (error) {
+      console.error('Error creating poll:', error)
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  const addPollOption = () => {
+    setNewPollOptions([...newPollOptions, `Option ${newPollOptions.length + 1}`])
+  }
+
+  const removePollOption = (index: number) => {
+    if (newPollOptions.length > 2) {
+      const newOptions = newPollOptions.filter((_, i) => i !== index)
+      setNewPollOptions(newOptions)
+      if (correctOptionIndex >= newOptions.length) {
+        setCorrectOptionIndex(0)
+      }
+    }
+  }
+
+  const updatePollOption = (index: number, value: string) => {
+    const newOptions = [...newPollOptions]
+    newOptions[index] = value
+    setNewPollOptions(newOptions)
+  }
+
+  const handleStartNext = async () => {
+    if (!activeEvent || queuedPolls.length === 0) return
+
+    try {
+      console.log('Starting next poll...')
+      const success = await endCurrentAndStartNext(activeEvent.id)
+      
+      if (success) {
+        console.log('Successfully started next poll')
+        // Refresh polls to show the new active poll
+        await fetchPolls(activeEvent.id)
+      } else {
+        console.error('Failed to start next poll')
+      }
+    } catch (error) {
+      console.error('Error starting next poll:', error)
+    }
+  }
+
+  const handleStartSpecificPoll = async (pollId: string) => {
+    if (!activeEvent) return
+
+    try {
+      console.log('Starting specific poll:', pollId)
+      
+      // First deactivate current poll if there is one
+      if (activePoll) {
+        await deactivatePoll(activePoll.id)
+      }
+      
+      // Activate the specific poll
+      const { error } = await supabase
+        .from('polls')
+        .update({ 
+          active: true, 
+          status: 'active',
+          starts_at: new Date().toISOString()
+        })
+        .eq('id', pollId)
+      
+      if (error) {
+        console.error('Error activating poll:', error)
+        return
+      }
+      
+      console.log('Successfully started specific poll')
+      // Refresh polls to show the new active poll
+      await fetchPolls(activeEvent.id)
+    } catch (error) {
+      console.error('Error starting specific poll:', error)
+    }
+  }
+
   const getEventStatus = () => {
     if (!activeEvent) return 'No Event'
     
@@ -182,7 +324,7 @@ export default function PollModerationPage() {
               </Button>
               {queuedPolls.length > 0 && (
                 <Button
-                  onClick={() => {/* handleStartNext */}}
+                  onClick={handleStartNext}
                   className="bg-green-600 hover:bg-green-500 border-0 shadow-lg hover:shadow-green-500/25 transition-all duration-200 text-white"
                 >
                   <Play className="h-4 w-4 mr-2" />
@@ -313,7 +455,7 @@ export default function PollModerationPage() {
                             </div>
                             <div className="flex gap-2 ml-3">
                               <Button
-                                onClick={() => {/* handleStartSpecificPoll */}}
+                                onClick={() => handleStartSpecificPoll(poll.id)}
                                 size="sm"
                                 className="bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-green-400 p-2"
                               >
@@ -367,6 +509,150 @@ export default function PollModerationPage() {
           </div>
         </div>
       </div>
+
+      {/* Poll Creation Modal */}
+      {showCreateForm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="bg-slate-800/95 border border-slate-700 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader className="border-b border-slate-700">
+              <CardTitle className={`${gothamMedium.className} text-xl text-white flex items-center justify-between`}>
+                Create New Poll
+                <Button
+                  onClick={() => setShowCreateForm(false)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-400 hover:text-white"
+                >
+                  ✕
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            
+            <CardContent className="p-6 space-y-6">
+              {/* Question Input */}
+              <div className="space-y-2">
+                <label className={`${gothamMedium.className} text-sm text-slate-200`}>
+                  Poll Question
+                </label>
+                <Textarea
+                  value={newPollQuestion}
+                  onChange={(e) => setNewPollQuestion(e.target.value)}
+                  placeholder="Enter your poll question..."
+                  className="bg-slate-900/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500"
+                  rows={3}
+                />
+              </div>
+
+              {/* Poll Options */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className={`${gothamMedium.className} text-sm text-slate-200`}>
+                    Poll Options
+                  </label>
+                  <Button
+                    onClick={addPollOption}
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-500 text-white"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Option
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  {newPollOptions.map((option, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <Input
+                        value={option}
+                        onChange={(e) => updatePollOption(index, e.target.value)}
+                        className="bg-slate-900/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500"
+                        placeholder={`Option ${index + 1}`}
+                      />
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={correctOptionIndex === index}
+                          onCheckedChange={(checked) => checked && setCorrectOptionIndex(index)}
+                          className="border-slate-600 data-[state=checked]:bg-green-600"
+                        />
+                        <span className="text-xs text-slate-400">Correct</span>
+                      </div>
+                      {newPollOptions.length > 2 && (
+                        <Button
+                          onClick={() => removePollOption(index)}
+                          size="sm"
+                          variant="ghost"
+                          className="text-red-400 hover:text-red-300 p-2"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Duration and Settings */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className={`${gothamMedium.className} text-sm text-slate-200`}>
+                    Duration (minutes)
+                  </label>
+                  <Input
+                    type="number"
+                    value={durationMinutes}
+                    onChange={(e) => setDurationMinutes(Math.max(1, parseInt(e.target.value) || 1))}
+                    min="1"
+                    max="60"
+                    className="bg-slate-900/50 border-slate-600 text-white focus:border-blue-500"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className={`${gothamMedium.className} text-sm text-slate-200`}>
+                    Auto Start
+                  </label>
+                  <div className="flex items-center space-x-2 pt-2">
+                    <Checkbox
+                      checked={autoStart}
+                      onCheckedChange={(checked) => setAutoStart(checked === true)}
+                      className="border-slate-600 data-[state=checked]:bg-blue-600"
+                    />
+                    <span className="text-sm text-slate-300">Start immediately</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={() => setShowCreateForm(false)}
+                  variant="ghost"
+                  className="flex-1 text-slate-400 hover:text-white border border-slate-600 hover:border-slate-500"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreatePoll}
+                  disabled={!newPollQuestion.trim() || isCreating}
+                  className="flex-1 bg-blue-600 hover:bg-blue-500 text-white"
+                >
+                  {isCreating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Poll
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }
