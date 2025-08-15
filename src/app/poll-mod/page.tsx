@@ -275,6 +275,112 @@ export default function PollModerationPage() {
     init()
   }, [fetchPolls])
 
+  // Subscribe to event changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('poll-mod-events')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'events' },
+        (payload) => {
+          console.log('poll-mod: Event change detected:', payload)
+          // Reload when events change
+          if (activeEvent) {
+            fetchPolls(activeEvent.id)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [activeEvent, fetchPolls])
+
+  // Subscribe to poll changes for the active event
+  useEffect(() => {
+    if (!activeEvent) return
+
+    console.log('poll-mod: Setting up poll subscription for event:', activeEvent.id)
+    
+    const channel = supabase
+      .channel(`poll-mod-polls-${activeEvent.id}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'polls',
+          filter: `event_id=eq.${activeEvent.id}`
+        },
+        (payload) => {
+          console.log('poll-mod: Poll change detected for event:', activeEvent.id, payload)
+          // Reload content to get the new/updated poll
+          setTimeout(() => {
+            fetchPolls(activeEvent.id)
+          }, 500) // Small delay to ensure DB is consistent
+        }
+      )
+      .subscribe()
+
+    return () => {
+      console.log('poll-mod: Cleaning up poll subscription for event:', activeEvent.id)
+      supabase.removeChannel(channel)
+    }
+  }, [activeEvent, fetchPolls])
+
+  // Subscribe to poll options changes
+  useEffect(() => {
+    if (!activePoll) return
+
+    console.log('poll-mod: Setting up poll options subscription for poll:', activePoll.id)
+    
+    const channel = supabase
+      .channel(`poll-mod-options-${activePoll.id}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'poll_options',
+          filter: `poll_id=eq.${activePoll.id}`
+        },
+        (payload) => {
+          console.log('poll-mod: Poll options change detected for poll:', activePoll.id, payload)
+          // Reload content to get updated options
+          if (activeEvent) {
+            setTimeout(() => {
+              fetchPolls(activeEvent.id)
+            }, 200)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      console.log('poll-mod: Cleaning up poll options subscription for poll:', activePoll.id)
+      supabase.removeChannel(channel)
+    }
+  }, [activePoll, activeEvent, fetchPolls])
+
+  // Subscribe to poll vote changes for real-time results
+  useEffect(() => {
+    if (!activePoll) return
+
+    console.log('poll-mod: Setting up poll votes subscription for poll:', activePoll.id)
+
+    const unsubscribe = subscribePollVotes(activePoll.id, async () => {
+      console.log('poll-mod: Poll votes changed, refreshing results')
+      // Refresh results when votes change
+      if (pollOptions.length > 0) {
+        const results = await getPollResultsWithOptions(activePoll.id, pollOptions)
+        setPollResults(results)
+      }
+    })
+
+    return unsubscribe
+  }, [activePoll, pollOptions])
+
   if (loading) {
     return (
       <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
