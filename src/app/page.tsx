@@ -187,28 +187,6 @@ export default function Home() {
             </h1>
           </div>
           
-          <div className="relative mb-8 mx-auto w-full flex justify-center">
-            <Link href="/chat" className="relative block">
-              <div 
-                className="z-50 hover:opacity-90 transition-opacity cursor-pointer"
-                style={{
-                  width: '520px',
-                  height: '281px',
-                  WebkitMask: 'url(/RightBub.svg) no-repeat center',
-                  mask: 'url(/RightBub.svg) no-repeat center',
-                  backgroundColor: '#FEDC01',
-                  WebkitMaskSize: '520px 281px',
-                  maskSize: '520px 281px',
-                  WebkitMaskRepeat: 'no-repeat',
-                  maskRepeat: 'no-repeat'
-                }}
-              />
-              <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-50 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
-                Join the chat!
-              </h2>
-            </Link>
-          </div>
-          
           {/* Demo: Test Verification Modal */}
           <div className="text-center mt-8">
             <button
@@ -283,24 +261,6 @@ export default function Home() {
             What&apos;s up,<br />
             {profile?.first_name || "friend"}!
           </h1>
-        </div>
-        
-        <div className="relative mb-9 mx-auto w-full flex justify-center">
-          <Link href="/chat" className="relative block">
-            <div 
-              className="w-[400px] h-[216px] z-50 hover:opacity-90 transition-opacity cursor-pointer"
-              style={{
-                WebkitMask: 'url(/RightBub.svg) no-repeat center',
-                mask: 'url(/RightBub.svg) no-repeat center',
-                backgroundColor: '#FEDC01',
-                WebkitMaskSize: 'contain',
-                maskSize: 'contain'
-              }}
-            />
-            <h2 className={`${goldplayBlack.className} text-2xl text-black leading-tight absolute inset-0 flex items-center justify-center text-center z-50 px-6`} style={{ maxWidth: '400px', left: '50%', transform: 'translateX(-50%) translateY(-10px)' }}>
-              Join the chat!
-            </h2>
-          </Link>
         </div>
 
         {/* Smile SVG Pile */}

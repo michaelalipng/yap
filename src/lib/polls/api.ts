@@ -31,6 +31,13 @@ export interface Poll {
   created_at: string
   event_id: string
   created_by?: string
+  correct_option_id?: string
+  duration_seconds?: number
+  starts_at?: string
+  ends_at?: string
+  status: 'draft' | 'active' | 'ended'
+  queue_position?: number
+  auto_start: boolean
 }
 
 export interface PollOption {
@@ -558,7 +565,7 @@ export const deactivatePoll = async (pollId: string): Promise<boolean> => {
   try {
     await supabase
       .from('polls')
-      .update({ active: false })
+      .update({ active: false, status: 'ended', ends_at: new Date().toISOString() })
       .eq('id', pollId)
       .throwOnError()
 
@@ -566,5 +573,219 @@ export const deactivatePoll = async (pollId: string): Promise<boolean> => {
   } catch (error) {
     console.error('Error deactivating poll:', error)
     return false
+  }
+}
+
+// Enhanced poll creation with correct answers and timing
+export const createTimedPoll = async (
+  question: string,
+  type: 'yes_no' | 'multi',
+  options: string[],
+  correctOptionIndex: number,
+  durationSeconds: number,
+  eventId: string,
+  autoStart: boolean = false,
+  userId?: string
+): Promise<string | null> => {
+  try {
+    console.log('Creating timed poll with:', { 
+      question, type, options, correctOptionIndex, durationSeconds, eventId, autoStart, userId 
+    })
+    
+    // Get next queue position if not auto-starting
+    let queuePosition = null
+    if (!autoStart) {
+      const { data: maxQueue } = await supabase
+        .from('polls')
+        .select('queue_position')
+        .eq('event_id', eventId)
+        .eq('status', 'draft')
+        .order('queue_position', { ascending: false })
+        .limit(1)
+        .single()
+      
+      queuePosition = (maxQueue?.queue_position || 0) + 1
+    }
+
+    // If auto-starting, deactivate existing active polls
+    if (autoStart) {
+      await supabase
+        .from('polls')
+        .update({ active: false, status: 'ended', ends_at: new Date().toISOString() })
+        .eq('event_id', eventId)
+        .eq('status', 'active')
+    }
+
+    // Create the poll
+    const pollData = {
+      question,
+      type,
+      active: autoStart,
+      status: autoStart ? 'active' : 'draft',
+      event_id: eventId,
+      created_by: userId,
+      duration_seconds: durationSeconds,
+      queue_position: queuePosition,
+      auto_start: !autoStart, // If not auto-starting now, it can auto-start later
+      starts_at: autoStart ? new Date().toISOString() : null,
+      ends_at: autoStart ? new Date(Date.now() + durationSeconds * 1000).toISOString() : null
+    }
+
+    const { data: poll, error: pollError } = await supabase
+      .from('polls')
+      .insert(pollData)
+      .select()
+      .single()
+
+    if (pollError || !poll) {
+      console.error('Error creating poll:', pollError)
+      return null
+    }
+
+    // Create poll options
+    const optionsData = options.map((text, i) => ({
+      poll_id: poll.id,
+      label: text.trim(),
+      position: i,
+      unique: `${poll.id}_${i}_${text.trim().toLowerCase().replace(/\s+/g, '_')}`
+    }))
+
+    const { data: insertedOptions, error: optionsError } = await supabase
+      .from('poll_options')
+      .insert(optionsData)
+      .select()
+
+    if (optionsError || !insertedOptions) {
+      console.error('Error creating poll options:', optionsError)
+      await supabase.from('polls').delete().eq('id', poll.id)
+      return null
+    }
+
+    // Set the correct answer
+    const correctOption = insertedOptions[correctOptionIndex]
+    if (correctOption) {
+      await supabase
+        .from('polls')
+        .update({ correct_option_id: correctOption.id })
+        .eq('id', poll.id)
+    }
+
+    console.log('Timed poll created successfully:', poll.id)
+    return poll.id
+  } catch (error) {
+    console.error('Error creating timed poll:', error)
+    return null
+  }
+}
+
+// Get queued polls for an event
+export const getQueuedPolls = async (eventId: string): Promise<Poll[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('polls')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('status', 'draft')
+      .order('queue_position', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching queued polls:', error)
+      return []
+    }
+
+    return data || []
+  } catch (error) {
+    console.error('Error fetching queued polls:', error)
+    return []
+  }
+}
+
+// Start the next poll in queue
+export const startNextQueuedPoll = async (eventId: string): Promise<boolean> => {
+  try {
+    // End current active poll
+    await supabase
+      .from('polls')
+      .update({ active: false, status: 'ended', ends_at: new Date().toISOString() })
+      .eq('event_id', eventId)
+      .eq('status', 'active')
+
+    // Get next queued poll
+    const { data: nextPoll } = await supabase
+      .from('polls')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('status', 'draft')
+      .order('queue_position', { ascending: true })
+      .limit(1)
+      .single()
+
+    if (!nextPoll) {
+      console.log('No queued polls to start')
+      return false
+    }
+
+    // Start the next poll
+    const now = new Date()
+    const endsAt = new Date(now.getTime() + (nextPoll.duration_seconds || 60) * 1000)
+
+    await supabase
+      .from('polls')
+      .update({
+        active: true,
+        status: 'active',
+        starts_at: now.toISOString(),
+        ends_at: endsAt.toISOString()
+      })
+      .eq('id', nextPoll.id)
+
+    console.log('Started next queued poll:', nextPoll.id)
+    return true
+  } catch (error) {
+    console.error('Error starting next queued poll:', error)
+    return false
+  }
+}
+
+// Check if poll has ended and handle transitions
+export const checkPollExpiry = async (eventId: string): Promise<void> => {
+  try {
+    const now = new Date()
+    
+    // Get active polls that should have ended
+    const { data: expiredPolls } = await supabase
+      .from('polls')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('status', 'active')
+      .not('ends_at', 'is', null)
+      .lt('ends_at', now.toISOString())
+
+    if (expiredPolls && expiredPolls.length > 0) {
+      // End expired polls
+      await supabase
+        .from('polls')
+        .update({ active: false, status: 'ended' })
+        .eq('event_id', eventId)
+        .eq('status', 'active')
+        .lt('ends_at', now.toISOString())
+
+      // Start next queued poll if auto-start is enabled
+      const { data: nextPoll } = await supabase
+        .from('polls')
+        .select('*')
+        .eq('event_id', eventId)
+        .eq('status', 'draft')
+        .eq('auto_start', true)
+        .order('queue_position', { ascending: true })
+        .limit(1)
+        .single()
+
+      if (nextPoll) {
+        await startNextQueuedPoll(eventId)
+      }
+    }
+  } catch (error) {
+    console.error('Error checking poll expiry:', error)
   }
 }

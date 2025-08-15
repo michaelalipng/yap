@@ -96,6 +96,14 @@ export default function HamburgerMenu({ profile, isMod }: HamburgerMenuProps) {
               PROFILE
             </Link>
             
+            <Link 
+              href="/polls" 
+              onClick={() => setIsOpen(false)}
+              className="block px-3 py-3 text-lg tracking-wide hover:bg-accent hover:text-accent-foreground transition-colors rounded-md"
+            >
+              POLLS
+            </Link>
+            
             {isMod && (
               <>
                 <button
@@ -128,18 +136,6 @@ export default function HamburgerMenu({ profile, isMod }: HamburgerMenuProps) {
           </div>
         </SheetContent>
       </Sheet>
-
-      {/* Chat Button */}
-      <Link href="/chat">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 p-0 hover:bg-muted/20"
-        >
-          <MessageCircle className="h-5 w-5" />
-          <span className="sr-only">Go to chat</span>
-        </Button>
-      </Link>
     </div>
   )
 }

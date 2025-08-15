@@ -137,6 +137,111 @@ export default function ChatPage() {
     };
   }, []);
 
+  // Detect virtual keyboard and adjust input positioning
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    let initialViewportHeight = window.innerHeight;
+    let isKeyboardOpen = false;
+
+    const handleResize = () => {
+      const currentHeight = window.innerHeight;
+      const heightDifference = initialViewportHeight - currentHeight;
+      
+      // If height decreased significantly, keyboard is likely open
+      if (heightDifference > 150) {
+        if (!isKeyboardOpen) {
+          isKeyboardOpen = true;
+          document.body.classList.add('keyboard-open');
+          console.log('Virtual keyboard detected as open');
+        }
+      } else if (heightDifference < 50) {
+        if (isKeyboardOpen) {
+          isKeyboardOpen = false;
+          document.body.classList.remove('keyboard-open');
+          console.log('Virtual keyboard detected as closed');
+        }
+      }
+    };
+
+    const handleOrientationChange = () => {
+      // Reset initial height on orientation change
+      setTimeout(() => {
+        initialViewportHeight = window.innerHeight;
+      }, 100);
+    };
+
+    // Listen for resize events (keyboard open/close)
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    
+    // Also listen for focus events on inputs
+    const handleInputFocus = () => {
+      // Small delay to let the keyboard animation start
+      setTimeout(() => {
+        const currentHeight = window.innerHeight;
+        const heightDifference = initialViewportHeight - currentHeight;
+        if (heightDifference > 150) {
+          isKeyboardOpen = true;
+          document.body.classList.add('keyboard-open');
+        }
+      }, 300);
+    };
+
+    const handleInputBlur = () => {
+      // Small delay to let the keyboard animation finish
+      setTimeout(() => {
+        const currentHeight = window.innerHeight;
+        const heightDifference = initialViewportHeight - currentHeight;
+        if (heightDifference < 50) {
+          isKeyboardOpen = false;
+          document.body.classList.remove('keyboard-open');
+        }
+      }, 300);
+    };
+
+    // Add event listeners to all inputs
+    const inputs = document.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+      input.addEventListener('focus', handleInputFocus);
+      input.addEventListener('blur', handleInputBlur);
+    });
+
+    // Monitor for new inputs
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1) { // Element node
+              const element = node as Element;
+              const newInputs = element.querySelectorAll ? element.querySelectorAll('input, textarea') : [];
+              newInputs.forEach((input: Element) => {
+                if (input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement) {
+                  input.addEventListener('focus', handleInputFocus);
+                  input.addEventListener('blur', handleInputBlur);
+                }
+              });
+            }
+          });
+        }
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      
+      inputs.forEach(input => {
+        input.removeEventListener('focus', handleInputFocus);
+        input.removeEventListener('blur', handleInputBlur);
+      });
+      
+      observer.disconnect();
+    };
+  }, []);
+
 
 
   // Modal states
@@ -181,40 +286,38 @@ export default function ChatPage() {
     // Generate random position with better distribution for rapid emoji sending
     let randomPosition: number
     let attempts = 0
-    const maxAttempts = 10
+    const maxAttempts = 5
     
     do {
-      randomPosition = Math.floor(Math.random() * 20) // Increased to 20 positions (0-19)
+      randomPosition = Math.floor(Math.random() * 30) // Increased to 30 positions (0-29)
       attempts++
       // If we can't find a unique position after max attempts, just use any position
       if (attempts >= maxAttempts) {
-        randomPosition = Math.floor(Math.random() * 20)
+        randomPosition = Math.floor(Math.random() * 30)
         break
       }
     } while (randomPosition === lastPosition && attempts < maxAttempts)
     
-    const startX = 5 + randomPosition * 4.5 // Adjusted spacing for 20 positions
+    const startX = 5 + randomPosition * 3 // Adjusted spacing for 30 positions
     setLastPosition(randomPosition)
     
-    // Add emoji to the list
+    // Add emoji to the list - no artificial limits for rapid sending
     setFloatingEmojis((prev) => {
-      // Limit to maximum 15 emojis to prevent performance issues and allow more rapid sending
-      const maxEmojis = 15
+      // Allow up to 50 emojis for rapid sending, only remove if we exceed that
+      const maxEmojis = 50
       if (prev.length >= maxEmojis) {
         // Remove oldest emojis if we're at the limit
         const newList = [...prev.slice(-maxEmojis + 1), { emoji, id: emojiId, startX }]
-        console.log('Emoji limit reached, removed oldest, new count:', newList.length)
         return newList
       }
       const newList = [...prev, { emoji, id: emojiId, startX }]
-      console.log('Added emoji, new count:', newList.length)
       return newList
     })
 
-    // Clear the emoji after 5 seconds
+    // Clear the emoji after 3.5 seconds (slightly longer than animation for smooth cleanup)
     setTimeout(() => {
       setFloatingEmojis((prev) => prev.filter(e => e.id !== emojiId))
-    }, 5000)
+    }, 3500)
   }, [lastPosition])
 
   useEffect(() => {
@@ -757,20 +860,24 @@ export default function ChatPage() {
       return
     }
 
-    console.log('Chat: Emoji clicked:', emoji, 'at timestamp:', Date.now(), 'floating emojis count:', floatingEmojis.length)
+    try {
+      // 1. Show local animation immediately (no await) - this should always work
+      animateEmoji(emoji)
 
-    // 1. Show local animation immediately (no await)
-    animateEmoji(emoji)
-    console.log('Chat: Local emoji animation triggered')
-
-    // 2. Broadcast to others using the new helper (fire and forget for rapid sending)
-    sendEmoji(activeEvent.id, { emoji, uid: profile.id })
-      .then(() => {
-        console.log('Chat: Emoji broadcast sent successfully')
-      })
-      .catch((error) => {
-        console.error('Chat: Error broadcasting emoji:', error)
-      })
+      // 2. Broadcast to others using the new helper (fire and forget for rapid sending)
+      sendEmoji(activeEvent.id, { emoji, uid: profile.id })
+        .then(() => {
+          // Emoji broadcast successful
+        })
+        .catch((error) => {
+          console.error('Chat: Error broadcasting emoji:', error)
+          // Don't block the UI for broadcast errors - local animation still works
+        })
+    } catch (error) {
+      console.error('Chat: Error in emoji click handler:', error)
+      // Even if there's an error, try to show the animation
+      animateEmoji(emoji)
+    }
   }
 
   // Refresh profile data to get updated star counts
@@ -1251,8 +1358,9 @@ export default function ChatPage() {
             className="absolute text-4xl floating-emoji"
             style={{
               left: `${emojiObj.startX}%`,
-              bottom: '120px',
+              bottom: '140px',
               animation: 'floatHigher 3s ease-out forwards',
+              zIndex: 1000
             }}
           >
             {emojiObj.emoji}
@@ -1408,10 +1516,12 @@ export default function ChatPage() {
       {/* Emoji Reactions Toggle Button */}
       {showEmojiButton && (
         <div 
-          className={`fixed right-4 z-20 ${
+          className={`fixed right-4 z-20 emoji-reactions-toggle ${
             buttonBurstingAway ? 'animate-burstAway' : 'animate-fadeIn'
           }`} 
-          style={{ bottom: '120px' }}
+          style={{ 
+            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 120px)'
+          }}
         >
           <button
             ref={emojiToggleRef}
@@ -1431,15 +1541,15 @@ export default function ChatPage() {
       {reactionsEnabled && activeEvent && profile && (
         <div 
           ref={emojiBarRef}
-          className={`fixed right-4 z-20 transition-all duration-300 ease-out origin-bottom-right ${
+          className={`fixed right-4 z-20 emoji-reactions-bar transition-all duration-300 ease-out origin-bottom-right ${
             showEmojiBar 
-              ? 'bottom-36 opacity-100 scale-100 translate-y-0' 
-              : 'bottom-28 opacity-0 scale-75 translate-y-4 pointer-events-none'
+              ? 'opacity-100 scale-100' 
+              : 'opacity-0 scale-75 pointer-events-none'
           }`}
           style={{ 
-            transform: showEmojiBar 
-              ? 'translateX(-50px) translateY(-60px) scale(1)' 
-              : 'translateX(-50px) translateY(-40px) scale(0.75)'
+            bottom: showEmojiBar 
+              ? 'calc(env(safe-area-inset-bottom, 0px) + 180px)'
+              : 'calc(env(safe-area-inset-bottom, 0px) + 160px)'
           }}
         >
           <div className="bg-background/95 backdrop-blur-sm border border-border rounded-full px-4 py-2 shadow-xl">
@@ -1470,12 +1580,19 @@ export default function ChatPage() {
       )}
 
       {/* Floating Banner above message input */}
-      <div className="fixed bottom-32 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md z-20">
+      <div className="fixed left-1/2 transform -translate-x-1/2 w-11/12 max-w-md z-20 chat-banner"
+           style={{
+             bottom: 'calc(env(safe-area-inset-bottom, 0px) + 100px)'
+           }}>
         <ChatBanner />
       </div>
 
       {/* Fixed Message Input - Responsive positioning */}
-      <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-t border-border p-3 pb-safe fixed bottom-0 left-0 right-0 z-10">
+      <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-t border-border p-3 pb-safe fixed bottom-0 left-0 right-0 z-10 chat-input-container"
+           style={{
+             bottom: 'env(safe-area-inset-bottom, 0px)',
+             minHeight: 'calc(env(safe-area-inset-bottom, 0px) + 80px)'
+           }}>
         <div className="flex gap-2 max-w-4xl mx-auto px-2">
           <div className="flex-1 relative">
             <Textarea
@@ -1541,6 +1658,167 @@ export default function ChatPage() {
             )}
           </button>
         </div>
+        
+        {/* Mobile keyboard responsive styles */}
+        <style jsx>{`
+          @supports (bottom: env(safe-area-inset-bottom)) {
+            .chat-input-container {
+              bottom: env(safe-area-inset-bottom, 0px);
+              min-height: calc(env(safe-area-inset-bottom, 0px) + 80px);
+            }
+          }
+          
+          @supports not (bottom: env(safe-area-inset-bottom)) {
+            .chat-input-container {
+              bottom: 0px;
+              min-height: 80px;
+            }
+          }
+          
+          /* Ensure input stays above keyboard on mobile */
+          @media (max-height: 600px) {
+            .chat-input-container {
+              position: fixed;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              z-index: 1000;
+            }
+          }
+          
+          /* iOS Safari specific fixes */
+          @supports (-webkit-touch-callout: none) {
+            .chat-input-container {
+              bottom: env(safe-area-inset-bottom, 0px);
+              min-height: calc(env(safe-area-inset-bottom, 0px) + 80px);
+            }
+          }
+          
+          /* Keyboard open state styles */
+          :global(.keyboard-open) .chat-input-container {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 1000 !important;
+            background: rgba(15, 15, 15, 0.98) !important;
+            backdrop-filter: blur(20px) !important;
+          }
+          
+          /* Ensure all floating elements stay above keyboard */
+          :global(.keyboard-open) .floating-emoji {
+            bottom: 120px !important;
+          }
+          
+          :global(.keyboard-open) .emoji-reactions-toggle {
+            bottom: 140px !important;
+          }
+          
+          :global(.keyboard-open) .emoji-reactions-bar {
+            bottom: 160px !important;
+          }
+          
+          :global(.keyboard-open) .chat-banner {
+            bottom: 180px !important;
+          }
+          
+          /* Mobile-specific viewport adjustments */
+          @media (max-width: 768px) {
+            .chat-input-container {
+              transition: all 0.3s ease;
+            }
+            
+            :global(.keyboard-open) .chat-input-container {
+              transform: translateY(0) !important;
+            }
+            
+            /* Modal positioning for mobile */
+            .modal-container {
+              align-items: flex-start !important;
+              padding-top: env(safe-area-inset-top, 20px) !important;
+              padding-bottom: env(safe-area-inset-bottom, 20px) !important;
+            }
+            
+            .modal-content {
+              margin-top: env(safe-area-inset-top, 20px) !important;
+              margin-bottom: env(safe-area-inset-bottom, 20px) !important;
+              max-height: calc(100vh - env(safe-area-inset-top, 20px) - env(safe-area-inset-bottom, 20px) - 40px) !important;
+            }
+          }
+          
+          /* Keyboard open state for modals */
+          :global(.keyboard-open) .modal-container {
+            align-items: flex-start !important;
+            padding-top: 20px !important;
+            padding-bottom: 20px !important;
+          }
+          
+          :global(.keyboard-open) .modal-content {
+            margin-top: 20px !important;
+            margin-bottom: 20px !important;
+            max-height: calc(100vh - 40px) !important;
+          }
+          
+          /* Emoji animation fixes */
+          .floating-emoji {
+            position: absolute !important;
+            pointer-events: none !important;
+            z-index: 1000 !important;
+            will-change: transform, opacity !important;
+            transform-origin: center bottom !important;
+            -webkit-transform-origin: center bottom !important;
+          }
+          
+          /* Ensure animations work on all devices */
+          @media (prefers-reduced-motion: no-preference) {
+            .floating-emoji {
+              animation: floatHigher 3s ease-out forwards !important;
+            }
+          }
+          
+          /* Fallback for devices that don't support animations */
+          @media (prefers-reduced-motion: reduce) {
+            .floating-emoji {
+              animation: none !important;
+              opacity: 0 !important;
+            }
+          }
+          
+          /* Animation classes */
+          .animate-fadeIn {
+            animation: fadeIn 0.3s ease-out forwards;
+          }
+          
+          .animate-burstAway {
+            animation: burstAway 0.5s ease-out forwards;
+          }
+          
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: scale(0.8);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+          
+          @keyframes burstAway {
+            0% {
+              opacity: 1;
+              transform: scale(1);
+            }
+            50% {
+              opacity: 0.8;
+              transform: scale(1.2);
+            }
+            100% {
+              opacity: 0;
+              transform: scale(0.5) translateY(-20px);
+            }
+          }
+        `}</style>
       </div>
 
 
@@ -1548,12 +1826,22 @@ export default function ChatPage() {
       {/* Banner Creation Modal */}
       {showBannerModal && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm overflow-y-auto modal-container"
           onClick={() => setShowBannerModal(false)}
+          style={{
+            paddingTop: 'env(safe-area-inset-top, 20px)',
+            paddingBottom: 'env(safe-area-inset-bottom, 20px)'
+          }}
         >
           <div 
-            className="bg-background border border-border rounded-lg p-6 w-full max-w-md mx-4"
+            className="bg-background border border-border rounded-lg p-6 w-full max-w-md mx-4 my-4 shadow-2xl modal-content"
             onClick={(e) => e.stopPropagation()}
+            style={{
+              marginTop: 'env(safe-area-inset-top, 20px)',
+              marginBottom: 'env(safe-area-inset-bottom, 20px)',
+              maxHeight: 'calc(100vh - env(safe-area-inset-top, 20px) - env(safe-area-inset-bottom, 20px) - 40px)',
+              overflowY: 'auto'
+            }}
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Create Banner</h2>
@@ -1569,12 +1857,22 @@ export default function ChatPage() {
       {/* Poll Creation Modal */}
       {showPollCreationModal && activeEvent && profile && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm overflow-y-auto modal-container"
           onClick={() => setShowPollCreationModal(false)}
+          style={{
+            paddingTop: 'env(safe-area-inset-top, 20px)',
+            paddingBottom: 'env(safe-area-inset-bottom, 20px)'
+          }}
         >
           <div 
-            className="bg-background/95 backdrop-blur-sm border border-border rounded-xl p-6 w-full max-w-2xl mx-4 shadow-2xl animate-fadeIn"
+            className="bg-background/95 backdrop-blur-sm border border-border rounded-xl p-6 w-full max-w-2xl mx-4 my-4 shadow-2xl animate-fadeIn modal-content"
             onClick={(e) => e.stopPropagation()}
+            style={{
+              marginTop: 'env(safe-area-inset-top, 20px)',
+              marginBottom: 'env(safe-area-inset-bottom, 20px)',
+              maxHeight: 'calc(100vh - env(safe-area-inset-top, 20px) - env(safe-area-inset-bottom, 20px) - 40px)',
+              overflowY: 'auto'
+            }}
           >
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
