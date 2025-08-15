@@ -291,112 +291,13 @@ export default function PollMonitorPage() {
             </p>
           </div>
         ) : !activePoll ? (
-          // Show ended poll results if available, otherwise show "no active poll" message
-          endedPoll ? (
-            <div className="space-y-12">
-              {/* Poll Question */}
-              <div className="text-center">
-                <h2 className={`${gothamUltra.className} text-5xl sm:text-6xl md:text-7xl text-gray-900 mb-4`}>
-                  {endedPoll.question}
-                </h2>
-                <div className="flex items-center justify-center gap-4 mb-4">
-                  <div className={`${gothamMedium.className} text-xl text-gray-600`}>
-                    {endedPollResults.reduce((sum, result) => sum + result.vote_count, 0)} total votes
-                  </div>
-                </div>
-                
-                {/* Show correct answer for ended poll */}
-                {endedPoll.correct_option_id && (
-                  <div className="bg-green-100 border border-green-300 rounded-lg p-4 mb-6 max-w-2xl mx-auto">
-                    <div className="flex items-center justify-center gap-2 text-green-800">
-                      <CheckCircle className="h-6 w-6" />
-                      <span className={`${gothamUltra.className} text-2xl font-bold`}>
-                        Poll Ended - Correct Answer: {
-                          endedPollOptions.find(opt => opt.id === endedPoll.correct_option_id)?.label || 'Unknown'
-                        }
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Poll Results for ended poll */}
-              <div className="space-y-8 max-w-3xl mx-auto">
-                {endedPollOptions.length > 0 ? (
-                  endedPollOptions.map((option) => {
-                    const result = endedPollResults.find(r => r.option_id === option.id)
-                    const voteCount = result?.vote_count || 0
-                    const percentage = result?.percentage || 0
-                    const isCorrectAnswer = endedPoll.correct_option_id === option.id
-                    
-                    return (
-                      <div 
-                        key={option.id} 
-                        className={`flex items-center justify-between p-8 rounded-2xl shadow-lg transition-all duration-300 ${
-                          isCorrectAnswer 
-                            ? 'bg-green-50 border-2 border-green-300 ring-4 ring-green-100' 
-                            : 'bg-white border border-gray-200'
-                        }`}
-                      >
-                        {/* Option Text */}
-                        <div className="flex items-center space-x-4">
-                          <div className={`w-4 h-4 rounded-full ${
-                            isCorrectAnswer ? 'bg-green-500' : 'bg-gray-300'
-                          }`} />
-                          <span className={`${gothamUltra.className} text-3xl sm:text-4xl text-gray-900 font-bold`}>
-                            {option.label}
-                          </span>
-                          {isCorrectAnswer && (
-                            <CheckCircle className="h-8 w-8 text-green-600" />
-                          )}
-                        </div>
-                        
-                        {/* Vote Count and Progress */}
-                        <div className="flex items-center space-x-6">
-                          <div className="text-right">
-                            <div className={`${gothamUltra.className} text-4xl sm:text-5xl font-bold ${
-                              isCorrectAnswer ? 'text-green-600' : 'text-gray-900'
-                            }`}>
-                              {voteCount}
-                            </div>
-                            <div className="text-lg text-gray-500 font-medium">
-                              {percentage}%
-                            </div>
-                          </div>
-                          
-                          {/* Progress Bar */}
-                          <div className="w-48 sm:w-64">
-                            <Progress 
-                              value={percentage} 
-                              className={`h-6 ${
-                                isCorrectAnswer 
-                                  ? 'bg-green-100' 
-                                  : 'bg-gray-200'
-                              }`}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })
-                ) : (
-                  <div className="text-center py-8">
-                    <p className={`${gothamBook.className} text-lg text-gray-500`}>
-                      No poll options available.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-6" />
-              <h3 className={`${gothamMedium.className} text-2xl text-gray-700 mb-3`}>No Active Poll</h3>
-              <p className={`${gothamBook.className} text-lg text-gray-500`}>
-                No poll is currently active. Stay tuned for the next question!
-              </p>
-            </div>
-          )
+          <div className="text-center py-16">
+            <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-6" />
+            <h3 className={`${gothamMedium.className} text-2xl text-gray-700 mb-3`}>No Active Poll</h3>
+            <p className={`${gothamBook.className} text-lg text-gray-500`}>
+              No poll is currently active. Stay tuned for the next question!
+            </p>
+          </div>
         ) : (
           <div className="space-y-12">
             {/* Poll Question */}
@@ -506,7 +407,201 @@ export default function PollMonitorPage() {
           </div>
         )}
 
+        {/* Previous Poll Results - shown when there's an ended poll but no active poll */}
+        {endedPoll && !activePoll && (
+          <div className="space-y-12 mt-16">
+            {/* Poll Question */}
+            <div className="text-center">
+              <div className="bg-gray-100 rounded-2xl p-6 mb-8 max-w-4xl mx-auto">
+                <h3 className={`${gothamMedium.className} text-lg text-gray-600 mb-4`}>
+                  Previous Poll Results
+                </h3>
+                <h2 className={`${gothamUltra.className} text-4xl sm:text-5xl md:text-6xl text-gray-900 mb-4`}>
+                  {endedPoll.question}
+                </h2>
+                <div className="flex items-center justify-center gap-4 mb-4">
+                  <div className={`${gothamMedium.className} text-xl text-gray-600`}>
+                    {endedPollResults.reduce((sum, result) => sum + result.vote_count, 0)} total votes
+                  </div>
+                </div>
+                
+                {/* Show correct answer for ended poll */}
+                {endedPoll.correct_option_id && (
+                  <div className="bg-green-100 border border-green-300 rounded-lg p-4 mb-6 max-w-2xl mx-auto">
+                    <div className="flex items-center justify-center gap-2 text-green-800">
+                      <CheckCircle className="h-6 w-6" />
+                      <span className={`${gothamUltra.className} text-2xl font-bold`}>
+                        Correct Answer: {
+                          endedPollOptions.find(opt => opt.id === endedPoll.correct_option_id)?.label || 'Unknown'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
+            {/* Poll Results for ended poll */}
+            <div className="space-y-8 max-w-3xl mx-auto">
+              {endedPollOptions.length > 0 ? (
+                endedPollOptions.map((option) => {
+                  const result = endedPollResults.find(r => r.option_id === option.id)
+                  const voteCount = result?.vote_count || 0
+                  const percentage = result?.percentage || 0
+                  const isCorrectAnswer = endedPoll.correct_option_id === option.id
+                  
+                  return (
+                    <div 
+                      key={option.id} 
+                      className={`flex items-center justify-between p-8 rounded-2xl shadow-lg transition-all duration-300 ${
+                        isCorrectAnswer 
+                          ? 'bg-green-50 border-2 border-green-300 ring-4 ring-green-100' 
+                          : 'bg-white border border-gray-200'
+                      }`}
+                    >
+                      {/* Option Text */}
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-4 h-4 rounded-full ${
+                          isCorrectAnswer ? 'bg-green-500' : 'bg-gray-300'
+                        }`} />
+                        <span className={`${gothamUltra.className} text-3xl sm:text-4xl text-gray-900 font-bold`}>
+                          {option.label}
+                        </span>
+                        {isCorrectAnswer && (
+                          <CheckCircle className="h-8 w-8 text-green-600" />
+                        )}
+                      </div>
+                      
+                      {/* Vote Count and Progress */}
+                      <div className="flex items-center space-x-6">
+                        <div className="text-right">
+                          <div className={`${gothamUltra.className} text-4xl sm:text-5xl font-bold ${
+                            isCorrectAnswer ? 'text-green-600' : 'text-gray-900'
+                          }`}>
+                            {voteCount}
+                          </div>
+                          <div className="text-lg text-gray-500 font-medium">
+                            {percentage}%
+                          </div>
+                        </div>
+                        
+                        {/* Progress Bar */}
+                        <div className="w-48 sm:w-64">
+                          <Progress 
+                            value={percentage} 
+                            className={`h-6 ${
+                              isCorrectAnswer 
+                                ? 'bg-green-100' 
+                                : 'bg-gray-200'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="text-center py-8">
+                  <p className={`${gothamBook.className} text-lg text-gray-500`}>
+                    No poll options available.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Previous Poll Results - compact version shown when there's both active and ended poll */}
+        {endedPoll && activePoll && (
+          <div className="mt-16 max-w-4xl mx-auto">
+            <div className="bg-gray-50 rounded-2xl p-6 shadow-md">
+              <div className="text-center mb-6">
+                <h3 className={`${gothamMedium.className} text-lg text-gray-600 mb-2`}>
+                  Previous Poll Results
+                </h3>
+                <h4 className={`${gothamUltra.className} text-2xl text-gray-900 mb-4`}>
+                  {endedPoll.question}
+                </h4>
+                <div className="flex items-center justify-center gap-4 mb-4">
+                  <div className={`${gothamMedium.className} text-base text-gray-600`}>
+                    {endedPollResults.reduce((sum, result) => sum + result.vote_count, 0)} total votes
+                  </div>
+                </div>
+                
+                {/* Show correct answer in compact form */}
+                {endedPoll.correct_option_id && (
+                  <div className="bg-green-100 border border-green-300 rounded-lg p-3 mb-6 max-w-xl mx-auto">
+                    <div className="flex items-center justify-center gap-2 text-green-800">
+                      <CheckCircle className="h-5 w-5" />
+                      <span className={`${gothamMedium.className} text-lg font-bold`}>
+                        Correct: {
+                          endedPollOptions.find(opt => opt.id === endedPoll.correct_option_id)?.label || 'Unknown'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Compact poll results */}
+              <div className="grid gap-4 max-w-2xl mx-auto">
+                {endedPollOptions.map((option) => {
+                  const result = endedPollResults.find(r => r.option_id === option.id)
+                  const voteCount = result?.vote_count || 0
+                  const percentage = result?.percentage || 0
+                  const isCorrectAnswer = endedPoll.correct_option_id === option.id
+                  
+                  return (
+                    <div 
+                      key={option.id} 
+                      className={`flex items-center justify-between p-4 rounded-xl transition-all ${
+                        isCorrectAnswer 
+                          ? 'bg-green-50 border-2 border-green-300' 
+                          : 'bg-white border border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          isCorrectAnswer ? 'bg-green-500' : 'bg-gray-300'
+                        }`} />
+                        <span className={`${gothamUltra.className} text-xl text-gray-900 font-bold`}>
+                          {option.label}
+                        </span>
+                        {isCorrectAnswer && (
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
+                          <div className={`${gothamUltra.className} text-2xl font-bold ${
+                            isCorrectAnswer ? 'text-green-600' : 'text-gray-900'
+                          }`}>
+                            {voteCount}
+                          </div>
+                          <div className="text-sm text-gray-500 font-medium">
+                            {percentage}%
+                          </div>
+                        </div>
+                        
+                        <div className="w-32">
+                          <Progress 
+                            value={percentage} 
+                            className={`h-3 ${
+                              isCorrectAnswer 
+                                ? 'bg-green-100' 
+                                : 'bg-gray-200'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
